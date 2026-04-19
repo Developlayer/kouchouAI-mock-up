@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI校長 モックアップ サイトマップ</title>
+<style>
+:root {
+  --primary: #4F46E5;
+  --primary-dark: #4338CA;
+  --primary-light: #EEF2FF;
+  --sidebar: #1E1B4B;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --bg: #F3F4F6;
+  --card: #FFFFFF;
+  --border: #E5E7EB;
+  --text: #111827;
+  --text-sub: #6B7280;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Segoe UI", sans-serif; color: var(--text); background: var(--bg); font-size: 14px; line-height: 1.7; }
+
+.mock-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: repeating-linear-gradient(135deg, #FEF3C7 0 12px, #FDE68A 12px 24px); color: #78350F; border-bottom: 2px solid #F59E0B; padding: 6px 14px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+.mock-banner a { color: #78350F; }
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: 48px 24px 80px; }
+header.hero { background: linear-gradient(135deg, var(--primary) 0%, #7C3AED 100%); color: #fff; padding: 36px 32px; border-radius: var(--radius-lg); margin-bottom: 24px; box-shadow: 0 8px 24px rgba(79,70,229,.2); }
+header.hero h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: .02em; }
+header.hero p { margin: 0; opacity: .9; font-size: 14px; }
+header.hero .meta { margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; }
+header.hero .meta span { background: rgba(255,255,255,.18); padding: 4px 10px; border-radius: 999px; }
+
+section.block { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px 32px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+section.block h2 { margin: 0 0 16px; font-size: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary-light); padding-bottom: 10px; }
+section.block h2 .num { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--primary); color: #fff; border-radius: 50%; font-size: 13px; font-weight: 700; }
+section.block h3 { margin: 20px 0 10px; font-size: 15px; color: var(--primary-dark); }
+
+.note { background: #FFFBEB; border-left: 3px solid var(--warning); padding: 10px 14px; border-radius: 6px; font-size: 13px; color: #78350F; margin: 12px 0; }
+.text-sub { color: var(--text-sub); font-size: 13px; }
+
+/* Terminology grid */
+.glossary { display: grid; grid-template-columns: 180px 1fr; gap: 10px 18px; font-size: 13px; }
+.glossary dt { font-weight: 700; color: var(--primary-dark); }
+.glossary dd { margin: 0; color: var(--text-sub); }
+
+/* Role×screen matrix */
+table.matrix { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.matrix th, table.matrix td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+table.matrix th { background: #F9FAFB; font-weight: 700; font-size: 12px; }
+table.matrix td.role { background: #F3F4F6; font-weight: 700; width: 120px; }
+table.matrix ul { margin: 0; padding-left: 18px; }
+table.matrix a { color: var(--primary); text-decoration: none; }
+table.matrix a:hover { text-decoration: underline; }
+
+/* Workflow steps */
+.workflow { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; }
+.workflow .wf { background: linear-gradient(180deg, #fff 0%, #F9FAFB 100%); border: 1px solid var(--border); border-radius: 8px; padding: 12px; position: relative; }
+.workflow .wf .num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--primary); color: #fff; border-radius: 50%; font-size: 11px; font-weight: 700; margin-bottom: 6px; }
+.workflow .wf .t { font-size: 12px; font-weight: 700; }
+.workflow .wf .s { font-size: 11px; color: var(--text-sub); margin-top: 4px; }
+.workflow .wf .who { font-size: 10px; background: var(--primary-light); color: var(--primary-dark); padding: 1px 6px; border-radius: 10px; display: inline-block; margin-top: 6px; }
+@media (max-width: 840px) { .workflow { grid-template-columns: repeat(2, 1fr); } }
+
+/* Phase bar */
+.phases { display: flex; gap: 0; align-items: stretch; margin: 12px 0; }
+.phases .ph { flex: 1; padding: 14px 10px; text-align: center; background: var(--card); border: 1px solid var(--border); position: relative; font-size: 12px; }
+.phases .ph:first-child { border-radius: 8px 0 0 8px; }
+.phases .ph:last-child { border-radius: 0 8px 8px 0; }
+.phases .ph.talk { background: #EEF2FF; }
+.phases .ph.summary { background: #F0FDF4; border-color: #86EFAC; }
+.phases .ph.pos { background: #FEF3C7; border-color: #FCD34D; }
+.phases .ph .n { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.phases .ph .d { font-size: 11px; color: var(--text-sub); }
+.phases .arrow { align-self: center; padding: 0 4px; color: var(--text-sub); }
+
+/* Screen list */
+.screens { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.screens .scr { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #F9FAFB; border: 1px solid var(--border); border-radius: 6px; text-decoration: none; color: var(--text); transition: all .15s; font-size: 13px; }
+.screens .scr:hover { border-color: var(--primary); background: var(--primary-light); transform: translateX(2px); }
+.screens .scr .spec { font-size: 11px; color: var(--text-sub); background: var(--card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border); font-family: monospace; min-width: 52px; text-align: center; }
+.screens .scr .name { flex: 1; }
+@media (max-width: 840px) { .screens { grid-template-columns: 1fr; } }
+
+/* Prereqs */
+.prereq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
+.prereq-grid .p { background: #F9FAFB; border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.prereq-grid .p h4 { margin: 0 0 8px; font-size: 14px; color: var(--primary-dark); }
+.prereq-grid .p ul { margin: 0; padding-left: 18px; font-size: 13px; }
+@media (max-width: 840px) { .prereq-grid { grid-template-columns: 1fr; } }
+
+.role-legend { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 16px; font-size: 12px; }
+.role-legend .lg { padding: 3px 10px; border-radius: 999px; font-weight: 700; }
+.role-admin { background: #FEE2E2; color: #991B1B; }
+.role-teacher { background: #DBEAFE; color: #1E40AF; }
+.role-interview { background: #FCE7F3; color: #9D174D; }
+.role-student { background: #D1FAE5; color: #065F46; }
+
+.btn-top { position: fixed; right: 20px; bottom: 20px; background: var(--primary); color: #fff; text-decoration: none; padding: 10px 18px; border-radius: 999px; box-shadow: 0 4px 12px rgba(79,70,229,.4); font-weight: 700; font-size: 13px; }
+
+body { padding-top: 30px; }
+</style>
+</head>
+<body>
+
+<div class="mock-banner">
+  🧪 MOCK-UP / デモ画面 — これはUI検証用のクリッカブルモックアップです。実データ・実運用ではありません。
+  <a href="index.html">← デモ画面に戻る</a>
+</div>
+
+<div class="wrap">
+
+  <header class="hero">
+    <h1>📑 AI校長 モックアップ サイトマップ</h1>
+    <p>プロジェクトの全体構造・ワークフロー・画面一覧をまとめたドキュメントです。</p>
+    <div class="meta">
+      <span>バージョン v3.5</span>
+      <span>最終更新: 2026-04-18</span>
+      <span>全28画面</span>
+      <span>4ロール</span>
+    </div>
+  </header>
+
+  <!-- 1. プロジェクト概要 -->
+  <section class="block">
+    <h2><span class="num">1</span>プロジェクト概要</h2>
+    <p>「AI校長」は、校長先生のパーソナリティを反映したAIが生徒と対話しながら、学校や地域の魅力について話し合う授業を支援するアプリです。本モックアップは UI の検証を目的とした静的HTMLです。</p>
+
+    <h3>用語集</h3>
+    <dl class="glossary">
+      <dt>AI校長モデル</dt><dd>校長先生の発話・価値観・方言などを反映したAIキャラクター。学校ごとに1モデル。</dd>
+      <dt>校長本人Ver / 校長代理Ver</dt><dd>インタビューを校長本人が回答するか、教頭など代理が回答するかの2パターン。</dd>
+      <dt>アイスブレイク</dt><dd>授業前半、生徒がAI校長に自由に質問して打ち解ける時間。</dd>
+      <dt>本題トーク</dt><dd>テーマ(例:「学校や地域、山口の魅力」)について意見を交わす時間。</dd>
+      <dt>サマリー</dt><dd>各フェーズの発言を集約したAI要約。クラス全体で投影・確認する。</dd>
+      <dt>ポジショニング</dt><dd>「AI校長は校長先生と言えるか?」などの問いに、生徒が自分の立場を可視化する活動。</dd>
+      <dt>事前インタビュー</dt><dd>校長先生がアンケート・声・写真・テイストを提供してAIモデルを作成する工程。</dd>
+      <dt>事前ワークシート</dt><dd>生徒が授業前に考えを書き込む下準備(任意)。</dd>
+    </dl>
+  </section>
+
+  <!-- 2. 関係者と画面 -->
+  <section class="block">
+    <h2><span class="num">2</span>関係者×画面マトリクス</h2>
+
+    <div class="role-legend">
+      <span class="lg role-admin">管理者</span>
+      <span class="lg role-teacher">学校の先生</span>
+      <span class="lg role-interview">校長先生(インタビュー対象)</span>
+      <span class="lg role-student">生徒</span>
+    </div>
+
+    <table class="matrix">
+      <thead>
+        <tr><th>ロール</th><th>主な責務</th><th>使う画面</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="role">管理者</td>
+          <td>学校の初期セットアップ、AIモデル下書き作成、インタビュー送付、進捗モニタリング</td>
+          <td>
+            <ul>
+              <li><a href="index.html#admin-schools">学校一覧(進捗ダッシュボード)</a></li>
+              <li><a href="index.html#admin-school-setup">学校セットアップウィザード</a></li>
+              <li><a href="index.html#admin-school-detail">学校詳細ワークスペース</a></li>
+              <li><a href="index.html#admin-users">ユーザー管理</a></li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td class="role">学校の先生</td>
+          <td>AIモデルの確認・編集、授業ルーム設計、授業の進行(司会・投影)、授業後の振り返り</td>
+          <td>
+            <ul>
+              <li><a href="index.html#teacher-dashboard">ダッシュボード</a></li>
+              <li><a href="index.html#teacher-model">AI校長モデル詳細・編集</a></li>
+              <li><a href="index.html#teacher-test">会話テスト</a></li>
+              <li><a href="index.html#teacher-interview">事前インタビュー管理</a></li>
+              <li><a href="index.html#teacher-rooms">授業ルーム一覧</a></li>
+              <li><a href="index.html#teacher-worksheets">事前ワークシート管理</a></li>
+              <li><a href="index.html#teacher-room-setup">授業ルーム作成・設定</a></li>
+              <li><a href="index.html#teacher-classroom">授業運営画面</a></li>
+              <li><a href="index.html#teacher-summary">最終サマリー</a></li>
+              <li><a href="index.html#teacher-review">授業後振り返り</a></li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td class="role">校長先生<br>(インタビュー)</td>
+          <td>専用URLからAIモデル用の情報提供(アンケート・声録音・写真・テイスト)</td>
+          <td>
+            <ul>
+              <li><a href="index.html#interview-start">インタビュー開始</a></li>
+              <li><a href="index.html#interview-survey">アンケート</a></li>
+              <li><a href="index.html#interview-voice">声の録音</a></li>
+              <li><a href="index.html#interview-photo">写真撮影・アップロード</a></li>
+              <li><a href="index.html#interview-taste">テイスト設定</a></li>
+              <li><a href="index.html#interview-done">完了</a></li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td class="role">生徒</td>
+          <td>授業中のAI校長との対話、サマリー確認、ポジショニング参加</td>
+          <td>
+            <ul>
+              <li><a href="index.html#student-name">名前入力</a></li>
+              <li><a href="index.html#student-wait">待機</a></li>
+              <li><a href="index.html#student-chat-icebreak">会話(アイスブレイク)</a></li>
+              <li><a href="index.html#student-chat-talk">会話(本題トーク)</a></li>
+              <li><a href="index.html#student-summary">サマリー視聴(先生の投影)</a></li>
+              <li><a href="index.html#student-positioning">ポジショニング</a></li>
+              <li><a href="index.html#student-end">終了</a></li>
+              <li><a href="index.html#student-worksheet">事前ワークシート</a></li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 3. 全体ワークフロー -->
+  <section class="block">
+    <h2><span class="num">3</span>全体ワークフロー</h2>
+    <p class="text-sub">実施学校の決定から授業実施・振り返りまでの時系列。</p>
+
+    <div class="workflow">
+      <div class="wf"><span class="num">1</span><div class="t">実施学校決定</div><div class="s">営業・契約</div><span class="who">社外/事務</span></div>
+      <div class="wf"><span class="num">2</span><div class="t">学校セットアップ</div><div class="s">基本情報・校長情報・Ver・テーマ・AI下書き生成</div><span class="who">管理者</span></div>
+      <div class="wf"><span class="num">3</span><div class="t">インタビュー依頼</div><div class="s">校長先生へ専用URL送付</div><span class="who">管理者</span></div>
+      <div class="wf"><span class="num">4</span><div class="t">インタビュー回答</div><div class="s">アンケート・音声・写真・テイスト</div><span class="who">校長</span></div>
+      <div class="wf"><span class="num">5</span><div class="t">モデル確認</div><div class="s">反映・会話テスト・必要なら編集</div><span class="who">先生</span></div>
+      <div class="wf"><span class="num">6</span><div class="t">授業実施・振り返り</div><div class="s">ルーム作成→授業運営→サマリー→振り返り</div><span class="who">先生</span></div>
+    </div>
+
+    <div class="note">
+      🔸 進捗6ステップ: <b>基本情報 / テーマ設定 / 素材収集 / 下書き生成 / インタビュー送付 / モデル稼働</b> の順に進行。学校詳細ワークスペースで一元管理されます。
+    </div>
+  </section>
+
+  <!-- 4. 前提条件・事前準備 -->
+  <section class="block">
+    <h2><span class="num">4</span>前提条件・事前準備</h2>
+
+    <div class="prereq-grid">
+      <div class="p">
+        <h4>🏫 学校側の準備</h4>
+        <ul>
+          <li>校長先生のインタビュー時間確保(本人Ver: 約20分 / 代理Ver: 約15分)</li>
+          <li>校長先生の顔写真(または代替アイコン)</li>
+          <li>授業用のタブレット or PC(生徒1人1台)</li>
+          <li>教室のプロジェクター or 大型モニター(サマリー投影用)</li>
+          <li>事前ワークシート(任意・授業前の課題)</li>
+        </ul>
+      </div>
+      <div class="p">
+        <h4>⚙️ 運営側の準備</h4>
+        <ul>
+          <li>学校の参考資料URL・学校だより等のテキスト収集</li>
+          <li>AI下書き生成と内容レビュー</li>
+          <li>インタビューURL・生徒入室URLの発行</li>
+          <li>授業テーマの決定(デフォルト「学校や地域、山口の魅力」)</li>
+          <li>先生への操作レクチャー</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 授業進行(5フェーズ) -->
+  <section class="block">
+    <h2><span class="num">5</span>授業進行(5フェーズ)</h2>
+    <p class="text-sub">1コマの授業は <b>アイスブレイク → サマリー① → 本題トーク → サマリー② → ポジショニング</b> の5段階で構成されます。</p>
+
+    <div class="phases">
+      <div class="ph talk"><div class="n">① アイスブレイク</div><div class="d">AI校長に自由に質問</div></div>
+      <span class="arrow">▶</span>
+      <div class="ph summary"><div class="n">② サマリー①</div><div class="d">質問を集約・共有</div></div>
+      <span class="arrow">▶</span>
+      <div class="ph talk"><div class="n">③ 本題トーク</div><div class="d">テーマで意見を交換</div></div>
+      <span class="arrow">▶</span>
+      <div class="ph summary"><div class="n">④ サマリー②</div><div class="d">意見を集約・共有</div></div>
+      <span class="arrow">▶</span>
+      <div class="ph pos"><div class="n">⑤ ポジショニング</div><div class="d">立場を可視化</div></div>
+    </div>
+
+    <h3>各フェーズの役割</h3>
+    <dl class="glossary">
+      <dt>① アイスブレイク</dt><dd>生徒がAI校長に自由に質問(趣味・好きな食べ物など)し、親近感を作る。生徒画面: 「AI校長に質問してみよう」</dd>
+      <dt>② サマリー①</dt><dd>生徒の質問傾向をAIが要約。先生は内容を確認・編集し、クラス全体に投影。</dd>
+      <dt>③ 本題トーク</dt><dd>AI校長がテーマ(デフォルト「学校や地域、山口の魅力」)について生徒に問いかけ。生徒画面: 「学校や地域の魅力について話してみよう」</dd>
+      <dt>④ サマリー②</dt><dd>本題の論点・注目発言をAIが要約。ポジショニングへの橋渡し。</dd>
+      <dt>⑤ ポジショニング</dt><dd>「AI校長は校長先生と言えるか?」など問いに対し、生徒が立場をマップ上に可視化。</dd>
+    </dl>
+
+    <div class="note">
+      📝 サマリー投影ボタンは「サマリー①/②」フェーズでのみ表示されます(不要な画面では非表示)。最終サマリー・授業後振り返りは授業終了後に各授業ルームから参照できます。
+    </div>
+  </section>
+
+  <!-- 6. 全画面リンク表 -->
+  <section class="block">
+    <h2><span class="num">6</span>全画面リンク一覧(全28画面)</h2>
+    <p class="text-sub">仕様書番号(spec #)と画面IDを併記。クリックで該当画面を直接開きます。</p>
+
+    <h3>共通</h3>
+    <div class="screens">
+      <a class="scr" href="index.html#login"><span class="spec">7-1</span><span class="name">ログイン画面</span></a>
+    </div>
+
+    <h3><span class="lg role-admin" style="font-size:11px;padding:1px 8px;">管理者</span></h3>
+    <div class="screens">
+      <a class="scr" href="index.html#admin-schools"><span class="spec">7-2-A</span><span class="name">学校一覧 / 進捗ダッシュボード</span></a>
+      <a class="scr" href="index.html#admin-school-setup"><span class="spec">7-2-B</span><span class="name">学校セットアップウィザード</span></a>
+      <a class="scr" href="index.html#admin-school-detail"><span class="spec">7-2-C</span><span class="name">学校詳細ワークスペース</span></a>
+      <a class="scr" href="index.html#admin-users"><span class="spec">7-2-D</span><span class="name">ユーザー管理</span></a>
+    </div>
+
+    <h3><span class="lg role-teacher" style="font-size:11px;padding:1px 8px;">学校の先生</span></h3>
+    <div class="screens">
+      <a class="scr" href="index.html#teacher-dashboard"><span class="spec">7-3-A</span><span class="name">ダッシュボード</span></a>
+      <a class="scr" href="index.html#teacher-model"><span class="spec">7-3-B</span><span class="name">AI校長モデル詳細・編集</span></a>
+      <a class="scr" href="index.html#teacher-test"><span class="spec">7-3-C</span><span class="name">会話テスト</span></a>
+      <a class="scr" href="index.html#teacher-interview"><span class="spec">7-3-D</span><span class="name">事前インタビュー管理</span></a>
+      <a class="scr" href="index.html#teacher-rooms"><span class="spec">7-3-E</span><span class="name">授業ルーム一覧</span></a>
+      <a class="scr" href="index.html#teacher-worksheets"><span class="spec">7-3-D2</span><span class="name">事前ワークシート管理</span></a>
+      <a class="scr" href="index.html#teacher-room-setup"><span class="spec">7-3-F</span><span class="name">授業ルーム作成・設定</span></a>
+      <a class="scr" href="index.html#teacher-classroom"><span class="spec">7-3-G</span><span class="name">授業運営画面</span></a>
+      <a class="scr" href="index.html#teacher-summary"><span class="spec">7-3-H</span><span class="name">最終サマリー(授業後・共有用)</span></a>
+      <a class="scr" href="index.html#teacher-review"><span class="spec">7-3-I</span><span class="name">授業後振り返り</span></a>
+    </div>
+
+    <h3><span class="lg role-interview" style="font-size:11px;padding:1px 8px;">校長先生(インタビュー)</span></h3>
+    <div class="screens">
+      <a class="scr" href="index.html#interview-start"><span class="spec">7-4-A</span><span class="name">インタビュー開始</span></a>
+      <a class="scr" href="index.html#interview-survey"><span class="spec">7-4-B</span><span class="name">アンケート</span></a>
+      <a class="scr" href="index.html#interview-voice"><span class="spec">7-4-C</span><span class="name">声の録音</span></a>
+      <a class="scr" href="index.html#interview-photo"><span class="spec">7-4-D</span><span class="name">写真撮影・アップロード</span></a>
+      <a class="scr" href="index.html#interview-taste"><span class="spec">7-4-E</span><span class="name">テイスト設定</span></a>
+      <a class="scr" href="index.html#interview-done"><span class="spec">7-4-F</span><span class="name">完了</span></a>
+    </div>
+
+    <h3><span class="lg role-student" style="font-size:11px;padding:1px 8px;">生徒</span></h3>
+    <div class="screens">
+      <a class="scr" href="index.html#student-name"><span class="spec">7-5-A</span><span class="name">名前入力</span></a>
+      <a class="scr" href="index.html#student-wait"><span class="spec">7-5-B</span><span class="name">待機</span></a>
+      <a class="scr" href="index.html#student-chat-icebreak"><span class="spec">7-5-C1</span><span class="name">会話(アイスブレイク)</span></a>
+      <a class="scr" href="index.html#student-chat-talk"><span class="spec">7-5-C2</span><span class="name">会話(本題トーク)</span></a>
+      <a class="scr" href="index.html#student-summary"><span class="spec">7-5-G</span><span class="name">サマリー視聴(先生の投影)</span></a>
+      <a class="scr" href="index.html#student-positioning"><span class="spec">7-5-D</span><span class="name">ポジショニング</span></a>
+      <a class="scr" href="index.html#student-end"><span class="spec">7-5-E</span><span class="name">終了</span></a>
+      <a class="scr" href="index.html#student-worksheet"><span class="spec">7-5-F</span><span class="name">事前ワークシート</span></a>
+    </div>
+  </section>
+
+  <!-- 7. モックアップ上の省略事項 -->
+  <section class="block">
+    <h2><span class="num">7</span>モックアップでの省略事項</h2>
+    <ul>
+      <li>実際のAI応答 → すべてダミーテキスト</li>
+      <li>音声録音・再生 → UIのみで実際の録音処理はなし</li>
+      <li>リアルタイム同期(生徒⇄教師) → 画面遷移のシミュレーションで表現</li>
+      <li>認証処理 → ログイン画面は何を入れても通過</li>
+      <li>URLトークン → ダミー固定文字列</li>
+      <li>学校名・人名 → すべて架空(A中学校〜D小学校、例)山田 太郎 など)</li>
+    </ul>
+  </section>
+
+</div>
+
+<a class="btn-top" href="index.html">← デモ画面を開く</a>
+
+</body>
+</html>

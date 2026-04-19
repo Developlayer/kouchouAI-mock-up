@@ -1,0 +1,3355 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI校長 モックアップ (デモ)</title>
+<style>
+/* ========== 基本変数・リセット ========== */
+:root {
+  --primary: #4F46E5;
+  --primary-dark: #4338CA;
+  --primary-light: #EEF2FF;
+  --sidebar: #1E1B4B;
+  --sidebar-hover: #312E81;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --bg: #F3F4F6;
+  --card: #FFFFFF;
+  --border: #E5E7EB;
+  --text: #111827;
+  --text-sub: #6B7280;
+  --text-mute: #9CA3AF;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+  --shadow: 0 4px 12px rgba(0,0,0,.08);
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Segoe UI", sans-serif; color: var(--text); background: var(--bg); font-size: 14px; line-height: 1.6; }
+button { font-family: inherit; cursor: pointer; border: none; }
+input, textarea, select { font-family: inherit; font-size: inherit; }
+a { color: var(--primary); text-decoration: none; }
+h1, h2, h3, h4 { margin: 0 0 12px; line-height: 1.3; }
+
+/* ========== 共通ボタン ========== */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: var(--radius); font-weight: 600; font-size: 14px; transition: all .15s; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: #F9FAFB; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-success { background: var(--success); color: #fff; }
+.btn-ghost { background: transparent; color: var(--primary); }
+.btn-sm { padding: 6px 12px; font-size: 13px; }
+.btn-lg { padding: 14px 28px; font-size: 16px; }
+.btn-block { width: 100%; justify-content: center; }
+
+/* ========== 入力 ========== */
+.field { margin-bottom: 16px; }
+.label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px; color: var(--text); }
+.input, .textarea, .select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; outline: none; transition: border-color .15s; }
+.input:focus, .textarea:focus, .select:focus { border-color: var(--primary); }
+.textarea { resize: vertical; min-height: 80px; }
+.hint { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
+
+/* ========== カード ========== */
+.card { background: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 20px; margin-bottom: 16px; }
+.card-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+
+/* ========== バッジ ========== */
+.badge { display: inline-block; padding: 2px 8px; font-size: 11px; border-radius: 999px; font-weight: 600; }
+.badge-success { background: #D1FAE5; color: #065F46; }
+.badge-warning { background: #FEF3C7; color: #92400E; }
+.badge-danger { background: #FEE2E2; color: #991B1B; }
+.badge-info { background: var(--primary-light); color: var(--primary); }
+.badge-gray { background: #F3F4F6; color: var(--text-sub); }
+
+/* ========== テーブル ========== */
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+.table th { font-size: 12px; color: var(--text-sub); font-weight: 600; text-transform: uppercase; background: #F9FAFB; }
+.table tbody tr:hover { background: #F9FAFB; cursor: pointer; }
+
+/* ========== 画面管理 ========== */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: block; }
+
+/* ========== サイドバーレイアウト ========== */
+.app-layout { display: flex; min-height: 100vh; }
+.sidebar { width: 240px; background: var(--sidebar); color: #E0E7FF; padding: 20px 0; flex-shrink: 0; }
+.sidebar-logo { padding: 0 20px 20px; font-size: 18px; font-weight: 700; color: #fff; border-bottom: 1px solid var(--sidebar-hover); margin-bottom: 12px; }
+.sidebar-logo small { display: block; font-size: 11px; font-weight: 400; color: #A5B4FC; margin-top: 2px; }
+.sidebar-section { padding: 8px 20px 4px; font-size: 11px; color: #A5B4FC; text-transform: uppercase; letter-spacing: .05em; }
+.sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: #E0E7FF; cursor: pointer; font-size: 14px; transition: background .15s; }
+.sidebar-item:hover { background: var(--sidebar-hover); }
+.sidebar-item.active { background: var(--sidebar-hover); border-left: 3px solid var(--primary); padding-left: 17px; color: #fff; }
+.sidebar-icon { width: 18px; text-align: center; }
+.main { flex: 1; padding: 28px 36px; overflow-x: hidden; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; }
+.page-title { font-size: 22px; font-weight: 700; }
+.page-sub { color: var(--text-sub); margin-top: 2px; font-size: 13px; }
+.breadcrumb { font-size: 12px; color: var(--text-sub); margin-bottom: 8px; }
+.breadcrumb a { color: var(--text-sub); }
+
+/* ========== デモナビパネル ========== */
+#devnav { position: fixed; bottom: 16px; right: 16px; z-index: 9999; background: #111827; color: #fff; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.3); width: 280px; max-height: 70vh; overflow: hidden; display: flex; flex-direction: column; font-size: 12px; }
+#devnav .devnav-head { padding: 10px 14px; background: #000; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+#devnav .devnav-head b { color: #fff; }
+#devnav.collapsed .devnav-body { display: none; }
+#devnav .devnav-body { overflow-y: auto; padding: 8px; }
+#devnav .devnav-group { margin-bottom: 8px; }
+#devnav .devnav-group-title { color: #9CA3AF; font-size: 10px; text-transform: uppercase; padding: 4px 8px; }
+#devnav .devnav-link { display: block; padding: 5px 8px; color: #D1D5DB; border-radius: 4px; cursor: pointer; }
+#devnav .devnav-link:hover { background: #374151; color: #fff; }
+
+/* ========== ログイン画面 ========== */
+.login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary) 0%, #6366F1 100%); padding: 20px; }
+.login-card { background: #fff; border-radius: var(--radius-lg); padding: 40px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+.login-logo { text-align: center; font-size: 28px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+.login-sub { text-align: center; color: var(--text-sub); margin-bottom: 28px; font-size: 13px; }
+.login-role { display: flex; gap: 8px; margin-bottom: 20px; }
+.login-role button { flex: 1; padding: 8px; border: 1px solid var(--border); background: #fff; border-radius: var(--radius); font-size: 12px; }
+.login-role button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ========== ダッシュボード統計 ========== */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: #fff; border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-sm); }
+.stat-label { font-size: 12px; color: var(--text-sub); margin-bottom: 6px; }
+.stat-value { font-size: 26px; font-weight: 700; color: var(--text); }
+.stat-delta { font-size: 12px; color: var(--success); margin-top: 4px; }
+
+/* ========== グリッド2カラム ========== */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+@media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+/* ========== 授業運営画面(3ペイン) ========== */
+.classroom-layout { display: grid; grid-template-columns: 260px 1fr 320px; gap: 0; height: calc(100vh - 0px); background: #F9FAFB; }
+.classroom-pane { background: #fff; border-right: 1px solid var(--border); overflow-y: auto; }
+.classroom-pane:last-child { border-right: none; border-left: 1px solid var(--border); }
+.classroom-header { grid-column: 1 / -1; background: #fff; border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
+.phase-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--primary-light); color: var(--primary); border-radius: 999px; font-weight: 600; font-size: 13px; }
+.phase-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.student-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.student-row .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; }
+.student-row .status { width: 6px; height: 6px; border-radius: 50%; }
+.status.online { background: var(--success); }
+.status.away { background: var(--warning); }
+.status.offline { background: var(--text-mute); }
+.chat-log { padding: 16px 20px; }
+.chat-msg { background: #F9FAFB; padding: 10px 12px; border-radius: var(--radius); margin-bottom: 8px; font-size: 13px; }
+.chat-msg .who { font-weight: 600; color: var(--primary); margin-bottom: 2px; font-size: 12px; }
+.tabs { display: flex; border-bottom: 1px solid var(--border); }
+.tab { padding: 12px 16px; font-size: 13px; cursor: pointer; color: var(--text-sub); font-weight: 600; border-bottom: 2px solid transparent; }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+/* ========== 生徒画面(PC向け v2) ========== */
+.student-page { min-height: 100vh; background: #E0F2FE; display: flex; flex-direction: column; }
+.student-topbar { background: #E0F2FE; padding: 22px 40px 18px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; }
+.student-topbar-side-l { justify-self: start; }
+.student-topbar-side-r { justify-self: end; }
+.student-topbar-center { display: flex; align-items: center; gap: 18px; justify-self: center; max-width: 100%; }
+.student-topbar .avatar-lg { width: 80px; height: 80px; border-radius: 50%; background: #fff; border: 4px solid #38BDF8; color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 32px; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(56,189,248,.3); }
+.student-topbar-title { font-weight: 700; font-size: 26px; color: #0F172A; line-height: 1.2; }
+.student-topbar-sub { font-size: 14px; color: #0284C7; margin-top: 4px; }
+.student-topbar-sub a { color: #0284C7; text-decoration: underline; }
+.student-end-btn { background: #FEE2E2; color: #B91C1C; border: 1.5px solid #FCA5A5; border-radius: 10px; padding: 10px 20px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.student-end-btn:hover { background: #FECACA; }
+.student-theme-bar { background: #FEF3C7; border-top: 1px solid #FDE68A; border-bottom: 1px solid #FDE68A; padding: 12px 40px; font-size: 14px; text-align: center; color: #92400E; }
+.student-content { flex: 1; padding: 28px 40px; width: 100%; box-sizing: border-box; }
+.student-content-narrow { max-width: 620px; margin: 32px auto; }
+
+/* 会話画面: フル幅 */
+.student-chat-full { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.student-chat-scroll { flex: 1; overflow-y: auto; padding: 28px 40px; display: flex; flex-direction: column; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+.student-memo-toggle { position: fixed; right: 24px; bottom: 120px; background: #fff; border: 1px solid var(--border); border-radius: 999px; padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: var(--shadow); z-index: 20; }
+.student-memo-panel { position: fixed; right: 24px; bottom: 180px; background: #fff; border-radius: var(--radius-lg); padding: 16px 18px; width: 280px; box-shadow: var(--shadow); z-index: 20; display: none; }
+.student-memo-panel.open { display: block; }
+
+/* 吹き出し */
+.chat-bubble { margin-bottom: 16px; max-width: 75%; }
+.chat-bubble.ai { align-self: flex-start; }
+.chat-bubble.me { align-self: flex-end; margin-left: auto; }
+.bubble-label { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+.bubble-content { padding: 14px 18px; border-radius: 16px; font-size: 16px; line-height: 1.6; }
+.ai .bubble-content { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+.me .bubble-content { background: var(--primary); color: #fff; }
+
+/* PTTボタン(全幅) */
+.ptt-bar { background: #fff; padding: 16px 40px 20px; border-top: 1px solid rgba(0,0,0,.05); }
+.ptt-btn { width: 100%; padding: 26px; border-radius: 14px; background: #38BDF8; color: #fff; font-weight: 700; font-size: 26px; transition: all .1s; box-shadow: 0 4px 12px rgba(56,189,248,.3); letter-spacing: .05em; }
+.ptt-btn:active, .ptt-btn.talking { background: var(--danger); transform: scale(.99); box-shadow: 0 4px 12px rgba(239,68,68,.3); }
+
+/* ポジショニング大画面 */
+.positioning-stage-lg { position: relative; background: linear-gradient(to right, #DBEAFE, #FEE2E2); border-radius: var(--radius-lg); padding: 120px 80px; min-height: 380px; margin: 16px 0; overflow: hidden; box-shadow: var(--shadow-sm); }
+.positioning-stage-lg .positioning-line { left: 80px; right: 80px; }
+.positioning-stage-lg .positioning-label { font-size: 15px; }
+.positioning-stage-lg .marker { font-size: 13px; padding: 6px 14px; }
+
+/* ========== ポジショニングマップ ========== */
+.positioning-stage { position: relative; background: linear-gradient(to right, #DBEAFE, #FEE2E2); border-radius: var(--radius-lg); padding: 40px 20px; min-height: 220px; margin: 16px 0; overflow: hidden; }
+.positioning-line { position: absolute; left: 20px; right: 20px; top: 50%; height: 2px; background: #9CA3AF; }
+.positioning-line::before, .positioning-line::after { content: ''; position: absolute; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: #6B7280; }
+.positioning-line::before { left: -5px; }
+.positioning-line::after { right: -5px; }
+.positioning-label { position: absolute; top: 50%; margin-top: 18px; font-size: 12px; font-weight: 600; }
+.positioning-label.left { left: 16px; color: #1D4ED8; }
+.positioning-label.right { right: 16px; color: #B91C1C; }
+.marker { position: absolute; transform: translate(-50%, -50%); top: 50%; background: var(--primary); color: #fff; padding: 4px 10px; border-radius: 999px; font-size: 11px; white-space: nowrap; cursor: grab; box-shadow: 0 2px 8px rgba(0,0,0,.2); user-select: none; }
+.marker.mine { background: var(--danger); outline: 3px solid rgba(239,68,68,.25); }
+.marker:active { cursor: grabbing; }
+
+/* ========== インタビュー画面 ========== */
+.interview-wrap { max-width: 640px; margin: 0 auto; padding: 32px 20px; min-height: 100vh; }
+.progress-bar { background: var(--border); height: 6px; border-radius: 999px; margin-bottom: 24px; overflow: hidden; }
+.progress-fill { background: var(--primary); height: 100%; transition: width .3s; }
+.step-badge { display: inline-block; font-size: 11px; color: var(--text-sub); margin-bottom: 8px; }
+
+/* ========== その他 ========== */
+.flex-row { display: flex; gap: 12px; align-items: center; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.spacer { flex: 1; }
+.mt-0 { margin-top: 0 !important; }
+.mt-4 { margin-top: 16px; }
+.mt-8 { margin-top: 32px; }
+.mb-0 { margin-bottom: 0 !important; }
+.text-sub { color: var(--text-sub); }
+.text-sm { font-size: 12px; }
+.text-center { text-align: center; }
+.divider { border-top: 1px solid var(--border); margin: 16px 0; }
+.url-box { background: #F9FAFB; border: 1px dashed var(--border); padding: 10px 14px; border-radius: var(--radius); font-family: monospace; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+.url-box .spacer { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qr-box { width: 120px; height: 120px; background: repeating-conic-gradient(#111 0% 25%, #fff 0% 50%) 50% / 12px 12px; border: 4px solid #fff; box-shadow: 0 0 0 1px var(--border); border-radius: 8px; }
+.toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.toggle input { width: 0; height: 0; opacity: 0; }
+.toggle .knob { width: 36px; height: 20px; background: #D1D5DB; border-radius: 999px; position: relative; transition: background .15s; }
+.toggle .knob::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: left .15s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.toggle input:checked + .knob { background: var(--primary); }
+.toggle input:checked + .knob::after { left: 18px; }
+.avatar-circle { width: 60px; height: 60px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; }
+.tag { display: inline-block; background: var(--primary-light); color: var(--primary); padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; margin-right: 4px; }
+.checkbox-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
+.radio-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.radio-card { border: 2px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; background: #fff; }
+.radio-card.selected { border-color: var(--primary); background: var(--primary-light); }
+.radio-card h4 { margin: 0 0 4px; font-size: 14px; }
+.radio-card p { margin: 0; font-size: 12px; color: var(--text-sub); }
+
+/* ========== ウィザード(縦型ステッパー) ========== */
+.wizard-layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; }
+@media (max-width: 900px) { .wizard-layout { grid-template-columns: 1fr; } }
+.wizard-steps { background: #fff; border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm); height: fit-content; position: sticky; top: 20px; }
+.wizard-step { display: flex; gap: 12px; padding: 12px 10px; border-radius: var(--radius); cursor: pointer; align-items: flex-start; }
+.wizard-step:hover { background: #F9FAFB; }
+.wizard-step.active { background: var(--primary-light); }
+.wizard-step.active .wizard-num { background: var(--primary); color: #fff; }
+.wizard-step.done .wizard-num { background: var(--success); color: #fff; }
+.wizard-step.done .wizard-num::after { content: '✓'; }
+.wizard-step.done .wizard-num span { display: none; }
+.wizard-num { width: 28px; height: 28px; border-radius: 50%; background: #F3F4F6; color: var(--text-sub); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.wizard-title { font-weight: 700; font-size: 14px; }
+.wizard-sub { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+.wizard-pane { display: none; }
+.wizard-pane.active { display: block; }
+.wizard-footer { display: flex; gap: 12px; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+
+/* ========== 進捗ステッパー(水平・コンパクト) ========== */
+.progress-stepper { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.progress-stepper .pstep { display: flex; align-items: center; gap: 6px; }
+.progress-stepper .pdot { width: 22px; height: 22px; border-radius: 50%; background: #E5E7EB; color: #9CA3AF; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.progress-stepper .pdot.done { background: var(--success); color: #fff; }
+.progress-stepper .pdot.current { background: var(--primary); color: #fff; box-shadow: 0 0 0 3px rgba(79,70,229,.2); }
+.progress-stepper .plabel { font-size: 11px; color: var(--text-sub); }
+.progress-stepper .pstep.done .plabel { color: var(--success); }
+.progress-stepper .pstep.current .plabel { color: var(--primary); font-weight: 700; }
+.progress-stepper .pline { flex: 1; height: 2px; background: #E5E7EB; min-width: 16px; }
+.progress-stepper .pline.done { background: var(--success); }
+
+/* ミニステッパー(テーブル内用) */
+.stepper-mini { display: inline-flex; align-items: center; gap: 2px; }
+.stepper-mini .sdot { width: 10px; height: 10px; border-radius: 50%; background: #E5E7EB; }
+.stepper-mini .sdot.done { background: var(--success); }
+.stepper-mini .sdot.current { background: var(--primary); box-shadow: 0 0 0 2px rgba(79,70,229,.25); }
+
+/* ========== 次のアクションバナー ========== */
+.next-action-banner { background: linear-gradient(135deg, #EEF2FF, #E0E7FF); border-left: 4px solid var(--primary); border-radius: var(--radius-lg); padding: 16px 20px; display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.next-action-banner .icon { font-size: 28px; }
+.next-action-banner .title { font-weight: 700; font-size: 15px; }
+.next-action-banner .sub { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+
+/* ========== 詳細タブペイン ========== */
+.detail-pane { display: none; }
+.detail-pane.active { display: block; }
+
+/* ========== v3.1 人物設定カード ========== */
+.persona-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; margin-bottom: 14px; }
+.persona-card .persona-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.persona-card .persona-num { width: 28px; height: 28px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.persona-card .persona-title { font-weight: 700; font-size: 15px; }
+.persona-field { padding: 10px 0; border-bottom: 1px dashed var(--border); }
+.persona-field:last-child { border-bottom: none; }
+.persona-field .plabel { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; font-weight: 600; }
+.persona-field .pvalue { font-size: 14px; line-height: 1.7; }
+.persona-field .pvalue[contenteditable="true"] { background: #F9FAFB; padding: 6px 10px; border-radius: var(--radius); border: 1px solid transparent; }
+.persona-field .pvalue[contenteditable="true"]:focus { outline: none; background: #fff; border-color: var(--primary); }
+
+/* ========== v3.1 授業運営フェーズバー ========== */
+.phase-bar { background: #fff; border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 8px; }
+.phase-chip { flex: 1; background: #F9FAFB; border: 2px solid var(--border); border-radius: var(--radius-lg); padding: 10px 14px; cursor: pointer; position: relative; }
+.phase-chip .pname { font-weight: 700; font-size: 14px; color: var(--text-sub); }
+.phase-chip .pmeta { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
+.phase-chip.done { background: #ECFDF5; border-color: var(--success); }
+.phase-chip.done .pname { color: var(--success); }
+.phase-chip.done::after { content: '✓'; position: absolute; top: 8px; right: 10px; color: var(--success); font-weight: 700; }
+.phase-chip.current { background: var(--primary-light); border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,.15); }
+.phase-chip.current .pname { color: var(--primary); }
+.phase-arrow { color: var(--text-sub); font-size: 18px; flex-shrink: 0; }
+
+/* ========== v3.1 生徒グリッド ========== */
+.student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; padding: 12px; }
+.student-tile { background: #F9FAFB; border: 2px solid transparent; border-radius: var(--radius); padding: 8px 6px; text-align: center; cursor: pointer; position: relative; transition: all .1s; }
+.student-tile:hover { background: #EEF2FF; }
+.student-tile .tile-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.student-tile .tile-name { font-size: 11px; font-weight: 600; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.student-tile .tile-dot { width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 4px; right: 4px; }
+.student-tile.active-speaking { border-color: var(--success); background: #ECFDF5; }
+.student-tile.needs-attention { border-color: var(--danger); background: #FEE2E2; }
+.student-tile.silent { opacity: 0.5; }
+
+/* ========== v3.1 先生ツールキット ========== */
+.toolkit-section { border-bottom: 1px solid var(--border); padding: 14px 16px; }
+.toolkit-section:last-child { border-bottom: none; }
+.toolkit-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.toolkit-head .emoji { font-size: 18px; }
+.toolkit-head .title { font-weight: 700; font-size: 13px; }
+.volatile-badge { display: inline-block; background: #FEF3C7; color: #92400E; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+
+/* ========== v3.1 モーダル ========== */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: #fff; border-radius: var(--radius-lg); max-width: 720px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.modal-header { padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+.modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-sub); }
+.transition-steps { display: flex; gap: 10px; margin-bottom: 20px; }
+.transition-step { flex: 1; padding: 14px; border-radius: var(--radius); background: #F9FAFB; border: 2px solid var(--border); }
+.transition-step.active { background: var(--primary-light); border-color: var(--primary); }
+.transition-step.done { background: #ECFDF5; border-color: var(--success); }
+.transition-step .tstep-num { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: var(--border); color: #fff; font-size: 11px; font-weight: 700; text-align: center; line-height: 22px; margin-right: 6px; }
+.transition-step.active .tstep-num { background: var(--primary); }
+.transition-step.done .tstep-num { background: var(--success); }
+.transition-step .tstep-title { font-weight: 700; font-size: 13px; }
+.transition-step .tstep-sub { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
+
+/* ========== v3.1 フェーズ別レイアウト ========== */
+.classroom-layout-v31 { display: grid; grid-template-columns: 280px 1fr 320px; gap: 0; height: calc(100vh - 0px); background: #F9FAFB; }
+.classroom-layout-v31 > .classroom-header { grid-column: 1 / -1; }
+.classroom-layout-v31 > .phase-bar { grid-column: 1 / -1; }
+.classroom-pane-v31 { background: #fff; border-right: 1px solid var(--border); overflow-y: auto; }
+.classroom-pane-v31:last-child { border-right: none; border-left: 1px solid var(--border); }
+.highlight-card { background: #FEF3C7; border-left: 4px solid var(--warning); padding: 12px 14px; border-radius: var(--radius); font-size: 13px; margin-bottom: 10px; }
+.top-speaker { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.top-speaker .rank { width: 24px; height: 24px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; }
+
+/* ========== モックアップ告知バナー ========== */
+.mock-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: repeating-linear-gradient(135deg, #FEF3C7 0 12px, #FDE68A 12px 24px); color: #78350F; border-bottom: 2px solid #F59E0B; padding: 6px 14px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 12px; letter-spacing: .02em; }
+.mock-banner a { color: #78350F; text-decoration: underline; }
+.mock-banner-link { background: #78350F; color: #FEF3C7 !important; padding: 3px 10px; border-radius: 999px; text-decoration: none !important; white-space: nowrap; font-size: 11px; }
+.mock-banner-link:hover { background: #451A03; }
+body.mock-banner-on { padding-top: 30px; }
+</style>
+</head>
+<body class="mock-banner-on">
+
+<!-- ======================================================================
+  モックアップ告知バナー(全画面共通)
+====================================================================== -->
+<div class="mock-banner" id="mock-banner">
+  <span>🧪 MOCK-UP / デモ画面 — これはUI検証用のクリッカブルモックアップです。実データ・実運用ではありません。 学校名(A〜D)・人名はすべてダミーです。</span>
+  <a href="sitemap.html" class="mock-banner-link">📑 サイトマップ</a>
+</div>
+
+<!-- ======================================================================
+  デモナビ(画面ジャンプ用)
+====================================================================== -->
+<div id="devnav">
+  <div class="devnav-head" onclick="document.getElementById('devnav').classList.toggle('collapsed')">
+    <b>🛠 デモナビ</b><span>▾</span>
+  </div>
+  <div class="devnav-body">
+    <div class="devnav-group">
+      <div class="devnav-group-title">共通</div>
+      <div class="devnav-link" onclick="show('login')">ログイン</div>
+    </div>
+    <div class="devnav-group">
+      <div class="devnav-group-title">管理者</div>
+      <div class="devnav-link" onclick="show('admin-schools')">7-2-A 学校一覧</div>
+      <div class="devnav-link" onclick="show('admin-school-setup')">7-2-B 学校セットアップ</div>
+      <div class="devnav-link" onclick="show('admin-school-detail')">7-2-C 学校詳細</div>
+      <div class="devnav-link" onclick="show('admin-users')">ユーザー管理</div>
+    </div>
+    <div class="devnav-group">
+      <div class="devnav-group-title">先生</div>
+      <div class="devnav-link" onclick="show('teacher-dashboard')">7-3-A ダッシュボード</div>
+      <div class="devnav-link" onclick="show('teacher-model')">7-3-B モデル詳細・編集</div>
+      <div class="devnav-link" onclick="show('teacher-test')">7-3-C 会話テスト</div>
+      <div class="devnav-link" onclick="show('teacher-interview')">7-3-D インタビュー管理</div>
+      <div class="devnav-link" onclick="show('teacher-rooms')">7-3-E 授業ルーム一覧</div>
+      <div class="devnav-link" onclick="show('teacher-worksheets')">生徒ワークシート一覧</div>
+      <div class="devnav-link" onclick="show('teacher-room-setup')">7-3-F ルーム作成・設定</div>
+      <div class="devnav-link" onclick="show('teacher-classroom')">7-3-G 授業運営</div>
+      <div class="devnav-link" onclick="show('teacher-summary')">7-3-H サマリー</div>
+      <div class="devnav-link" onclick="show('teacher-review')">7-3-I 授業後振り返り</div>
+    </div>
+    <div class="devnav-group">
+      <div class="devnav-group-title">事前インタビュー</div>
+      <div class="devnav-link" onclick="show('interview-start')">7-4-A 開始</div>
+      <div class="devnav-link" onclick="show('interview-survey')">7-4-B アンケート</div>
+      <div class="devnav-link" onclick="show('interview-voice')">7-4-C 声の録音</div>
+      <div class="devnav-link" onclick="show('interview-photo')">7-4-D 写真</div>
+      <div class="devnav-link" onclick="show('interview-taste')">7-4-E テイスト</div>
+      <div class="devnav-link" onclick="show('interview-done')">7-4-F 完了</div>
+    </div>
+    <div class="devnav-group">
+      <div class="devnav-group-title">生徒</div>
+      <div class="devnav-link" onclick="show('student-name')">7-5-A 名前入力</div>
+      <div class="devnav-link" onclick="show('student-wait')">7-5-B 待機</div>
+      <div class="devnav-link" onclick="show('student-chat-icebreak')">7-5-C① 会話(アイスブレイク)</div>
+      <div class="devnav-link" onclick="show('student-chat-talk')">7-5-C② 会話(本題トーク)</div>
+      <div class="devnav-link" onclick="show('student-summary')">7-5-G サマリー視聴(投影中)</div>
+      <div class="devnav-link" onclick="show('student-positioning')">7-5-D ポジショニング</div>
+      <div class="devnav-link" onclick="show('student-end')">7-5-E 終了</div>
+      <div class="devnav-link" onclick="show('student-worksheet')">7-5-F 事前ワークシート</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================================
+  ログイン
+====================================================================== -->
+<section class="screen active" id="login">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">AI校長</div>
+      <div class="login-sub">クリッカブルモックアップ</div>
+      <div class="login-role">
+        <button onclick="selectRole(this,'admin')">管理者</button>
+        <button class="active" onclick="selectRole(this,'teacher')">学校の先生</button>
+      </div>
+      <!-- 管理者用フィールド -->
+      <div id="admin-fields" style="display:none;">
+        <div class="field">
+          <label class="label">メールアドレス</label>
+          <input class="input" type="email" placeholder="you@example.com" value="admin@ai-kocho.example.jp" />
+          <div class="hint">管理者は個別のメールアドレスで識別されます</div>
+        </div>
+      </div>
+      <!-- 学校の先生用フィールド -->
+      <div id="teacher-fields">
+        <div class="field">
+          <label class="label">学校ID</label>
+          <input class="input" placeholder="例: sch_00123" value="sch_00123" />
+          <div class="hint">管理者から共有された学校IDを入力してください</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">パスワード</label>
+        <input class="input" type="password" value="demo1234" />
+        <div class="hint" id="teacher-pw-hint">管理者が設定したパスワードを使用してください</div>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" onclick="doLogin()">ログイン</button>
+      <div style="text-align:center;margin-top:16px;font-size:12px;display:none;" id="admin-forgot">
+        <a href="#" onclick="event.preventDefault()">パスワードをお忘れの方</a>
+      </div>
+      <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--text-sub);" id="teacher-forgot">
+        パスワードを忘れた場合は、管理者までお問い合わせください
+      </div>
+      <div class="divider"></div>
+      <div class="text-sm text-center text-sub">モック用ダミーアクセス</div>
+      <div class="flex-row" style="margin-top:8px;gap:8px;">
+        <button class="btn btn-secondary btn-sm" style="flex:1" onclick="show('interview-start')">インタビューURL</button>
+        <button class="btn btn-secondary btn-sm" style="flex:1" onclick="show('student-name')">生徒URL</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-2-A 学校一覧(管理者)
+====================================================================== -->
+<section class="screen" id="admin-schools">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">AI校長<small>管理者コンソール</small></div>
+      <div class="sidebar-section">管理</div>
+      <div class="sidebar-item active" onclick="show('admin-schools')"><span class="sidebar-icon">🏫</span>学校一覧</div>
+      <div class="sidebar-item" onclick="show('admin-users')"><span class="sidebar-icon">👥</span>ユーザー管理</div>
+      <div class="sidebar-section">アカウント</div>
+      <div class="sidebar-item" onclick="show('login')"><span class="sidebar-icon">🚪</span>ログアウト</div>
+    </aside>
+    <main class="main">
+      <div class="page-header">
+        <div>
+          <div class="page-title">学校一覧</div>
+          <div class="page-sub">学校ごとのセットアップ進捗を管理</div>
+        </div>
+        <button class="btn btn-primary" onclick="show('admin-school-setup')">＋ 新規学校を追加</button>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">登録校数</div><div class="stat-value">4</div><div class="stat-delta">+1 今月</div></div>
+        <div class="stat-card"><div class="stat-label">稼働中モデル</div><div class="stat-value">2</div></div>
+        <div class="stat-card"><div class="stat-label">セットアップ中</div><div class="stat-value">2</div></div>
+        <div class="stat-card"><div class="stat-label">今月の授業数</div><div class="stat-value">8</div><div class="stat-delta">+3</div></div>
+      </div>
+      <div class="card">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
+          <b>セットアップ進捗</b>
+          <span class="text-sub text-sm">進捗ステップ: 基本情報 → テーマ設定 → 素材収集 → 下書き生成 → インタビュー送付 → モデル稼働</span>
+        </div>
+        <table class="table">
+          <thead>
+            <tr><th>学校名</th><th>種別</th><th>進捗</th><th>次のアクション</th><th>担当</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr onclick="show('admin-school-detail')">
+              <td><b>A中学校</b><div class="text-sub text-sm">校長本人Ver ・ sch_00123</div></td>
+              <td><span class="badge badge-gray">中学校</span></td>
+              <td><span class="stepper-mini"><span class="sdot done"></span><span class="sdot done"></span><span class="sdot done"></span><span class="sdot done"></span><span class="sdot done"></span><span class="sdot done"></span></span><div class="text-sub text-sm" style="margin-top:4px;">稼働中</div></td>
+              <td><span class="badge badge-success">完了</span></td>
+              <td>例)山田 太郎</td>
+              <td>›</td>
+            </tr>
+            <tr onclick="show('admin-school-detail')">
+              <td><b>B小学校</b><div class="text-sub text-sm">校長代理Ver ・ sch_00124</div></td>
+              <td><span class="badge badge-gray">小学校</span></td>
+              <td><span class="stepper-mini"><span class="sdot done"></span><span class="sdot done"></span><span class="sdot done"></span><span class="sdot done"></span><span class="sdot done"></span><span class="sdot done"></span></span><div class="text-sub text-sm" style="margin-top:4px;">稼働中</div></td>
+              <td><span class="badge badge-success">完了</span></td>
+              <td>佐々木 校長</td>
+              <td>›</td>
+            </tr>
+            <tr onclick="show('admin-school-detail')">
+              <td><b>C中学校</b><div class="text-sub text-sm">校長本人Ver ・ sch_00125</div></td>
+              <td><span class="badge badge-gray">中学校</span></td>
+              <td><span class="stepper-mini"><span class="sdot done"></span><span class="sdot done"></span><span class="sdot done"></span><span class="sdot done"></span><span class="sdot"></span><span class="sdot"></span></span><div class="text-sub text-sm" style="margin-top:4px;">下書き完了</div></td>
+              <td><span class="badge badge-warning">インタビュー送付</span></td>
+              <td>中村 校長</td>
+              <td>›</td>
+            </tr>
+            <tr onclick="show('admin-school-detail')">
+              <td><b>D小学校</b><div class="text-sub text-sm">Ver未定 ・ sch_00126</div></td>
+              <td><span class="badge badge-gray">小学校</span></td>
+              <td><span class="stepper-mini"><span class="sdot done"></span><span class="sdot"></span><span class="sdot"></span><span class="sdot"></span><span class="sdot"></span><span class="sdot"></span></span><div class="text-sub text-sm" style="margin-top:4px;">基本情報のみ</div></td>
+              <td><span class="badge badge-warning">テーマ設定</span></td>
+              <td>—</td>
+              <td>›</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-2-B 学校セットアップウィザード(4ステップ)
+====================================================================== -->
+<section class="screen" id="admin-school-setup">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">AI校長<small>管理者コンソール</small></div>
+      <div class="sidebar-section">管理</div>
+      <div class="sidebar-item active" onclick="show('admin-schools')"><span class="sidebar-icon">🏫</span>学校一覧</div>
+      <div class="sidebar-item" onclick="show('admin-users')"><span class="sidebar-icon">👥</span>ユーザー管理</div>
+      <div class="sidebar-section">アカウント</div>
+      <div class="sidebar-item" onclick="show('login')"><span class="sidebar-icon">🚪</span>ログアウト</div>
+    </aside>
+    <main class="main">
+      <div class="breadcrumb"><a onclick="show('admin-schools')">学校一覧</a> / 新規学校のセットアップ</div>
+      <div class="page-header">
+        <div>
+          <div class="page-title">新規学校のセットアップ</div>
+          <div class="page-sub">4ステップで、事前インタビュー送付までを一気に行います</div>
+        </div>
+      </div>
+
+      <div class="wizard-layout">
+        <!-- 左: ステッパー -->
+        <div class="wizard-steps">
+          <div class="wizard-step active" data-step="1" onclick="wizardStep(1)">
+            <div class="wizard-num"><span>1</span></div>
+            <div><div class="wizard-title">基本情報</div><div class="wizard-sub">学校 / 校長 / Ver</div></div>
+          </div>
+          <div class="wizard-step" data-step="2" onclick="wizardStep(2)">
+            <div class="wizard-num"><span>2</span></div>
+            <div><div class="wizard-title">テーマ設定</div><div class="wizard-sub">本題トーク</div></div>
+          </div>
+          <div class="wizard-step" data-step="3" onclick="wizardStep(3)">
+            <div class="wizard-num"><span>3</span></div>
+            <div><div class="wizard-title">AI下書き生成</div><div class="wizard-sub">素材投入 → 自動生成</div></div>
+          </div>
+          <div class="wizard-step" data-step="4" onclick="wizardStep(4)">
+            <div class="wizard-num"><span>4</span></div>
+            <div><div class="wizard-title">インタビュー依頼</div><div class="wizard-sub">URL発行・送付</div></div>
+          </div>
+        </div>
+
+        <!-- 右: パネル -->
+        <div>
+          <!-- Step 1: 基本情報 -->
+          <div class="wizard-pane active" id="wizard-pane-1">
+            <div class="card">
+              <h3 class="card-title">① 学校の基本情報</h3>
+              <div class="field">
+                <label class="label">学校名 <span style="color:var(--danger)">*</span></label>
+                <div class="flex-row" style="gap:6px;align-items:stretch;">
+                  <input class="input" placeholder="例: A" style="flex:1;" />
+                  <select class="select" style="width:120px;flex-shrink:0;">
+                    <option>小学校</option>
+                    <option>中学校</option>
+                  </select>
+                </div>
+                <div class="hint">例: A中学校 (デモデータ)</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 class="card-title">② 校長先生の情報</h3>
+              <div class="grid-2">
+                <div class="field"><label class="label">校長先生のお名前 <span style="color:var(--danger)">*</span></label>
+                  <input class="input" placeholder="例: 山田 太郎" /></div>
+                <div class="field"><label class="label">ご連絡先メール(任意)</label>
+                  <input class="input" type="email" placeholder="校長先生にインタビューURLを送る際に使用" /></div>
+              </div>
+              <div class="field"><label class="label">AI校長の種別 <span style="color:var(--danger)">*</span></label>
+                <div class="radio-cards">
+                  <div class="radio-card selected" onclick="toggleRadio(this)">
+                    <h4>校長本人Ver</h4>
+                    <p>校長先生自身を模倣。顔写真・声の録音が必要。合成音声で本人の声を再現。</p>
+                  </div>
+                  <div class="radio-card" onclick="toggleRadio(this)">
+                    <h4>校長代理Ver</h4>
+                    <p>マスコットや校章を使用。合成音声でOK。校長先生が登壇されない場合に。</p>
+                  </div>
+                </div>
+                <div class="hint" style="margin-top:8px;">※ 後から変更できます。まずはどちらで運用するかを決めます。</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 class="card-title">③ 学校アカウント</h3>
+              <div class="hint" style="margin-bottom:16px;background:#FEF3C7;padding:10px 14px;border-radius:var(--radius);">
+                🔐 <b>学校アカウントは「学校ID + パスワード」でログイン</b>します。パスワードは管理者が発行し、先生に直接お伝えください。
+              </div>
+              <div class="grid-2">
+                <div class="field"><label class="label">学校ID(自動採番)</label>
+                  <input class="input" value="sch_00127" readonly style="background:#F9FAFB;" /></div>
+                <div class="field"><label class="label">パスワード</label>
+                  <div class="flex-row" style="gap:6px;">
+                    <input class="input" value="Xk9pQ2mN" style="flex:1;" />
+                    <button class="btn btn-secondary btn-sm">↻ 生成</button>
+                  </div></div>
+              </div>
+            </div>
+
+            <div class="wizard-footer">
+              <button class="btn btn-secondary" onclick="show('admin-schools')">キャンセル</button>
+              <div class="spacer"></div>
+              <button class="btn btn-primary" onclick="wizardStep(2)">次へ:テーマ設定 →</button>
+            </div>
+          </div>
+
+          <!-- Step 2: テーマ -->
+          <div class="wizard-pane" id="wizard-pane-2">
+            <div class="card">
+              <h3 class="card-title">本題トークのテーマ</h3>
+              <div class="hint" style="margin-bottom:12px;">授業の本題トークで扱うテーマです。基本は1つ設定します。ここで決めたテーマがAI下書き・生徒の事前ワークシート・授業中のテーマ表示すべてに反映されます。<br>※同じ学校では授業を複数回行っても同じテーマを繰り返す想定のため、学校単位で1セットのみ管理します。</div>
+
+              <div class="field">
+                <label class="label">テーマ(デフォルト)</label>
+                <div class="card" style="background:#F0FDF4;border-left:4px solid var(--success);padding:14px;">
+                  <b>学校や地域、山口の魅力について話してみよう</b>
+                  <div class="text-sm text-sub" style="margin-top:4px;">このテーマをそのまま使う場合、ここで「次へ」を押してください</div>
+                </div>
+              </div>
+
+              <div class="field" style="margin-top:10px;">
+                <label class="flex-row" style="gap:8px;cursor:pointer;">
+                  <input type="checkbox" id="wiz-theme-custom" onchange="document.getElementById('wiz-theme-custom-input').style.display=this.checked?'block':'none'" />
+                  <b>オプション:テーマをカスタマイズする</b>
+                </label>
+                <div id="wiz-theme-custom-input" style="display:none;margin-top:8px;">
+                  <input class="input" placeholder="例: 変えたい校則はある? / 理想の学校行事は?" />
+                  <div class="text-sub text-sm" style="margin-top:4px;">カスタムにすると、事前ワークシートとAI下書きの地域パートも自動で内容が差し替わります。</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="wizard-footer">
+              <button class="btn btn-secondary" onclick="wizardStep(1)">← 戻る</button>
+              <div class="spacer"></div>
+              <button class="btn btn-primary" onclick="wizardStep(3)">次へ:AI下書き生成 →</button>
+            </div>
+          </div>
+
+          <!-- Step 3: AI下書き生成 -->
+          <div class="wizard-pane" id="wizard-pane-3">
+            <div class="card" style="background:#EEF2FF;border-left:4px solid var(--primary);">
+              <div class="flex-row">
+                <span style="font-size:22px;">✨</span>
+                <div class="text-sm">
+                  <b>素材から事前アンケートの下書きをAIが自動作成します。</b><br>
+                  学校HP・学校だより・資料などを投入すると、校長先生がインタビューに答える際の叩き台になります。
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 class="card-title">素材を読み込ませる</h3>
+              <div class="field">
+                <label class="label">参考URL(複数可)</label>
+                <textarea class="textarea" placeholder="学校HP・ブログ・記事のURLを改行区切りで入力&#10;https://...&#10;https://..." style="min-height:80px;font-size:13px;">https://www.example-a-jhs.example.jp/
+https://www.example-city.example.jp/kyoiku/area-midokoro.html</textarea>
+              </div>
+              <div class="field">
+                <label class="label">テキスト直貼り</label>
+                <textarea class="textarea" placeholder="学校だより・式辞・沿革文など自由にペースト" style="min-height:80px;font-size:13px;">〈校長あいさつ・令和7年度〉
+本校は「自律・協働・挑戦」を校訓とし、生徒一人ひとりの個性を大切にしています。山口の豊かな自然と歴史に学びながら...</textarea>
+              </div>
+              <div class="field">
+                <label class="label">ファイル添付(PDF / Word / 画像)</label>
+                <div class="card" style="background:#F9FAFB;border:2px dashed var(--border);text-align:center;padding:24px;cursor:pointer;">
+                  <div style="font-size:28px;margin-bottom:4px;">📎</div>
+                  <div class="text-sm">クリックして選択、またはドラッグ&ドロップ</div>
+                  <div class="text-sub text-sm mt-4" style="margin-top:4px;">学校だより・入学案内・写真付き資料など</div>
+                </div>
+                <div class="mt-4" style="margin-top:10px;">
+                  <div class="flex-row" style="gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+                    <span class="badge badge-info">📄 学校だより_2026_04.pdf</span>
+                    <span class="badge badge-info">📄 学校要覧.pdf</span>
+                    <span class="badge badge-info">🖼 校舎外観.jpg</span>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-primary btn-block btn-lg" onclick="document.getElementById('wizard-draft-result').style.display='block';this.scrollIntoView({behavior:'smooth'})">✨ 下書きを生成する</button>
+              <div class="text-sm text-sub text-center mt-4">※生成には1〜2分かかります</div>
+            </div>
+
+            <!-- 生成結果 -->
+            <div class="card" id="wizard-draft-result" style="display:none;">
+              <div class="flex-between">
+                <h3 class="card-title" style="margin:0;">生成された下書き(プレビュー)</h3>
+                <span class="badge badge-success">✓ 生成完了</span>
+              </div>
+              <div class="text-sm text-sub" style="margin:6px 0 12px;">4つのセクション × 各項目ごとに自動分類して記入されています。信頼度バッジを確認してください。</div>
+              <div class="flex-row" style="gap:8px;flex-wrap:wrap;margin-bottom:12px;font-size:12px;">
+                <span class="badge badge-success">出典あり</span>
+                <span class="badge badge-warning">推測 (要確認)</span>
+                <span class="badge badge-gray">空欄 (ヒアリング必須)</span>
+              </div>
+
+              <div class="card" style="border-left:4px solid var(--primary);">
+                <h4 style="font-size:14px;color:var(--primary);margin-bottom:8px;">① 校長先生ご自身のこと</h4>
+                <div class="text-sm" style="line-height:1.8;">
+                  <div><b>お名前</b> <span class="badge badge-success">出典あり</span><br>例)山田 太郎</div>
+                  <div style="margin-top:8px;"><b>学生時代の思い出</b> <span class="badge badge-gray">空欄</span><br><span class="text-sub">(ヒアリング必須)</span></div>
+                  <div style="margin-top:8px;"><b>教育への理念</b> <span class="badge badge-warning">推測</span><br>「自律・協働・挑戦」を大切にする(校訓から推定)</div>
+                </div>
+              </div>
+              <div class="card" style="border-left:4px solid #10B981;">
+                <h4 style="font-size:14px;color:#059669;margin-bottom:8px;">② 学校のこと</h4>
+                <div class="text-sm" style="line-height:1.8;">
+                  <div><b>校訓</b> <span class="badge badge-success">出典あり</span><br>自律・協働・挑戦</div>
+                  <div style="margin-top:8px;"><b>学校の特色</b> <span class="badge badge-success">出典あり</span><br>山口の自然と歴史を生かした地域連携教育</div>
+                </div>
+              </div>
+              <div class="card" style="border-left:4px solid #F59E0B;">
+                <h4 style="font-size:14px;color:#D97706;margin-bottom:8px;">③ 地域のこと</h4>
+                <div class="text-sm" style="line-height:1.8;">
+                  <div><b>地域(湯田)の魅力</b> <span class="badge badge-success">出典あり</span><br>湯田温泉を中心に、古くから湯治・文学・交流の文化が根付いている</div>
+                  <div style="margin-top:8px;"><b>山口の魅力</b> <span class="badge badge-success">出典あり</span><br>歴史・自然・食文化(ふぐ・瓦そば・地酒)の豊かさ</div>
+                </div>
+              </div>
+              <div class="card" style="border-left:4px solid #8B5CF6;">
+                <h4 style="font-size:14px;color:#7C3AED;margin-bottom:8px;">④ AI校長の話し方</h4>
+                <div class="text-sm" style="line-height:1.8;">
+                  <div><b>よく使う言葉・口癖</b> <span class="badge badge-gray">空欄</span><br><span class="text-sub">(ヒアリング必須)</span></div>
+                  <div style="margin-top:8px;"><b>どんな雰囲気で会話したいか</b> <span class="badge badge-warning">推測</span><br>やさしく、親しみやすく(校訓からの推定)</div>
+                </div>
+              </div>
+
+              <div class="flex-row mt-4">
+                <div class="spacer"></div>
+                <button class="btn btn-secondary">再生成</button>
+              </div>
+            </div>
+
+            <div class="wizard-footer">
+              <button class="btn btn-secondary" onclick="wizardStep(2)">← 戻る</button>
+              <div class="spacer"></div>
+              <button class="btn btn-primary" onclick="wizardStep(4)">次へ:インタビュー依頼 →</button>
+            </div>
+          </div>
+
+          <!-- Step 4: インタビュー依頼 -->
+          <div class="wizard-pane" id="wizard-pane-4">
+            <div class="card" style="background:#F0FDF4;border-left:4px solid var(--success);">
+              <div class="flex-row">
+                <span style="font-size:22px;">✅</span>
+                <div class="text-sm">
+                  <b>下書きが保存されました。</b><br>
+                  最後のステップです。校長先生(または担当の先生)に事前インタビューURLをお送りください。
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 class="card-title">事前インタビューURL</h3>
+              <div class="hint" style="margin-bottom:12px;">
+                このURLを校長先生(または担当の先生)にお送りください。ログイン不要で、下書きをベースにインタビュー回答できます。
+              </div>
+              <div class="url-box">
+                <span class="spacer">https://ai-kocho.example.jp/interview/a9k3n7xy2bQ1pW4c</span>
+                <button class="btn btn-secondary btn-sm">コピー</button>
+                <button class="btn btn-ghost btn-sm" onclick="show('interview-start')">プレビュー</button>
+              </div>
+              <div class="flex-row mt-4" style="flex-wrap:wrap;gap:8px;">
+                <button class="btn btn-secondary">📧 メール文面を生成</button>
+                <button class="btn btn-secondary">🔗 LINE/Slack用のリンクをコピー</button>
+                <button class="btn btn-secondary">↻ URLを再発行</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 class="card-title">送付先のご案内(サンプル)</h3>
+              <div class="text-sm" style="background:#F9FAFB;padding:14px 16px;border-radius:var(--radius);line-height:1.8;">
+                A中学校<br>
+                例)山田 太郎 校長 様<br><br>
+                お世話になっております。AI校長モデル作成のため、事前インタビューのご協力をお願いいたします。<br>
+                下記URLよりアクセスしてご回答ください(所要時間:約20分)。<br><br>
+                https://ai-kocho.example.jp/interview/a9k3n7xy2bQ1pW4c<br><br>
+                ※学校HPから自動生成した下書きを一部ご用意しております。内容をご確認のうえ、修正・加筆をお願いいたします。
+              </div>
+            </div>
+
+            <div class="wizard-footer">
+              <button class="btn btn-secondary" onclick="wizardStep(3)">← 戻る</button>
+              <div class="spacer"></div>
+              <button class="btn btn-ghost" onclick="show('admin-schools')">下書き保存して終了</button>
+              <button class="btn btn-primary" onclick="show('admin-schools')">✓ 送付完了にする</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-2-C 学校詳細ワークスペース(管理者)
+====================================================================== -->
+<section class="screen" id="admin-school-detail">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">AI校長<small>管理者コンソール</small></div>
+      <div class="sidebar-section">管理</div>
+      <div class="sidebar-item" onclick="show('admin-schools')"><span class="sidebar-icon">🏫</span>学校一覧</div>
+      <div class="sidebar-item" onclick="show('admin-users')"><span class="sidebar-icon">👥</span>ユーザー管理</div>
+      <div class="sidebar-section">アカウント</div>
+      <div class="sidebar-item" onclick="show('login')"><span class="sidebar-icon">🚪</span>ログアウト</div>
+    </aside>
+    <main class="main">
+      <div class="breadcrumb"><a onclick="show('admin-schools')">学校一覧</a> / C中学校</div>
+      <div class="page-header">
+        <div>
+          <div class="page-title">C中学校 <span class="badge badge-warning" style="vertical-align:middle;">セットアップ中</span></div>
+          <div class="page-sub">校長本人Ver ・ sch_00125 ・ 担当: 中村 校長</div>
+        </div>
+        <div class="flex-row">
+          <button class="btn btn-secondary" onclick="show('admin-school-setup')">基本設定を編集</button>
+          <button class="btn btn-primary">＋ 授業ルーム作成</button>
+        </div>
+      </div>
+
+      <!-- 進捗ステッパー -->
+      <div class="card" style="padding:18px 20px;">
+        <div class="text-sub text-sm" style="margin-bottom:10px;">セットアップ進捗</div>
+        <div class="progress-stepper">
+          <span class="pdot done">✓</span><span class="plabel">基本情報</span>
+          <span class="pline"></span>
+          <span class="pdot done">✓</span><span class="plabel">テーマ設定</span>
+          <span class="pline"></span>
+          <span class="pdot done">✓</span><span class="plabel">素材収集</span>
+          <span class="pline"></span>
+          <span class="pdot done">✓</span><span class="plabel">下書き生成</span>
+          <span class="pline"></span>
+          <span class="pdot current">5</span><span class="plabel">インタビュー送付</span>
+          <span class="pline"></span>
+          <span class="pdot">6</span><span class="plabel">モデル稼働</span>
+        </div>
+      </div>
+
+      <!-- 次のアクション -->
+      <div class="next-action-banner">
+        <div style="font-size:28px;">📨</div>
+        <div style="flex:1;">
+          <b>次のアクション: 事前インタビュー依頼を送付</b>
+          <div class="text-sub text-sm">下書きは完成しています。中村校長先生にインタビューURLを送付してください。</div>
+        </div>
+        <button class="btn btn-primary btn-sm">インタビュータブを開く</button>
+      </div>
+
+      <!-- タブ -->
+      <div class="tabs">
+        <button class="tab active" onclick="detailTab(this,'overview')">概要</button>
+        <button class="tab" onclick="detailTab(this,'draft')">素材・下書き</button>
+        <button class="tab" onclick="detailTab(this,'interview')">インタビュー</button>
+        <button class="tab" onclick="detailTab(this,'model')">AI校長モデル</button>
+        <button class="tab" onclick="detailTab(this,'rooms')">授業ルーム</button>
+      </div>
+
+      <!-- ① 概要 -->
+      <div class="detail-pane active" id="detail-pane-overview">
+        <div class="grid-2">
+          <div class="card">
+            <h3 class="card-title">学校情報</h3>
+            <div class="text-sm" style="line-height:2;">
+              <div><b>学校名:</b> C中学校</div>
+              <div><b>種別:</b> 中学校</div>
+              <div><b>所在地:</b> 山口県山口市</div>
+              <div><b>学校ID:</b> <code style="background:#F3F4F6;padding:2px 6px;border-radius:4px;">sch_00125</code></div>
+              <div><b>登録日:</b> 2026-04-01</div>
+            </div>
+          </div>
+          <div class="card">
+            <h3 class="card-title">校長先生情報</h3>
+            <div class="text-sm" style="line-height:2;">
+              <div><b>お名前:</b> 中村 校長</div>
+              <div><b>Ver:</b> <span class="badge badge-success">校長本人Ver</span></div>
+              <div><b>連絡先:</b> nakamura@example-c-jhs.example.jp</div>
+              <div><b>インタビュー状況:</b> <span class="badge badge-warning">未送付</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="card-title">本題トークのテーマ</h3>
+          <div class="card" style="background:#F0FDF4;border-left:4px solid var(--success);padding:12px 14px;margin-bottom:8px;">
+            <b>学校や地域、山口の魅力について話してみよう</b>
+            <div class="text-sub text-sm" style="margin-top:4px;">デフォルトテーマ ・ 学校単位で1つ管理(授業を複数回行っても同じ)</div>
+          </div>
+          <button class="btn btn-secondary btn-sm">✏ テーマをカスタマイズ</button>
+        </div>
+      </div>
+
+      <!-- ② 素材・下書き -->
+      <div class="detail-pane" id="detail-pane-draft">
+        <div class="grid-2">
+          <div>
+            <div class="card">
+              <h3 class="card-title">投入済み素材</h3>
+              <div class="flex-row" style="flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+                <span class="badge badge-info">📄 学校だより_2026_04.pdf</span>
+                <span class="badge badge-info">📄 学校要覧.pdf</span>
+                <span class="badge badge-info">🖼 校舎外観.jpg</span>
+              </div>
+              <div class="text-sub text-sm">参考URL 2件 / テキスト直貼り 1件</div>
+              <div class="mt-4"><button class="btn btn-secondary btn-sm">素材を追加・編集</button></div>
+            </div>
+            <div class="card">
+              <h3 class="card-title">生成履歴</h3>
+              <div class="text-sm" style="line-height:1.8;">
+                <div>2026-04-12 10:24 — 初回生成</div>
+                <div>2026-04-15 14:02 — 再生成(学校要覧追加後)</div>
+              </div>
+              <button class="btn btn-secondary btn-block mt-4">↻ 下書きを再生成</button>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="flex-between">
+                <h3 class="card-title" style="margin:0;">生成された下書き</h3>
+                <span class="badge badge-success">✓ 生成済み</span>
+              </div>
+              <div class="flex-row" style="gap:8px;flex-wrap:wrap;margin:10px 0;font-size:12px;">
+                <span class="badge badge-success">出典あり</span>
+                <span class="badge badge-warning">推測</span>
+                <span class="badge badge-gray">空欄</span>
+              </div>
+              <div class="card" style="border-left:4px solid var(--primary);">
+                <h4 style="font-size:14px;color:var(--primary);margin-bottom:8px;">① 校長先生ご自身のこと</h4>
+                <div class="text-sm" style="line-height:1.8;">
+                  <div><b>お名前</b> <span class="badge badge-success">出典あり</span><br>中村 校長</div>
+                  <div style="margin-top:8px;"><b>教育への理念</b> <span class="badge badge-warning">推測</span><br>「自律・協働・挑戦」を大切にする(校訓から推定)</div>
+                </div>
+              </div>
+              <div class="card" style="border-left:4px solid #10B981;">
+                <h4 style="font-size:14px;color:#059669;margin-bottom:8px;">② 学校のこと</h4>
+                <div class="text-sm" style="line-height:1.8;">
+                  <div><b>校訓</b> <span class="badge badge-success">出典あり</span><br>自律・協働・挑戦</div>
+                  <div style="margin-top:8px;"><b>子どもたちの特色</b> <span class="badge badge-warning">推測</span><br>明るく素直な生徒が多い(要確認)</div>
+                </div>
+              </div>
+              <div class="card" style="border-left:4px solid #F59E0B;">
+                <h4 style="font-size:14px;color:#D97706;margin-bottom:8px;">③ 地域のこと</h4>
+                <div class="text-sm" style="line-height:1.8;">
+                  <div><b>山口の魅力</b> <span class="badge badge-success">出典あり</span><br>歴史・自然・食文化(ふぐ・瓦そば・地酒)の豊かさ</div>
+                </div>
+              </div>
+              <div class="flex-row mt-4">
+                <button class="btn btn-secondary">編集</button>
+                <div class="spacer"></div>
+                <button class="btn btn-primary" onclick="alert('下書きをインタビューに反映しました(モック)')">インタビューに反映</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ③ インタビュー -->
+      <div class="detail-pane" id="detail-pane-interview">
+        <div class="card">
+          <h3 class="card-title">インタビューURL</h3>
+          <div class="field">
+            <label class="label">校長先生用URL</label>
+            <div class="flex-row">
+              <input class="input" readonly value="https://ai-kocho.example.jp/interview/sch_00125/aaaa-bbbb-cccc" style="flex:1;" />
+              <button class="btn btn-secondary">コピー</button>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">下書き反映状況</label>
+            <div><span class="badge badge-success">✓ AI下書きを反映済み</span> <span class="text-sub text-sm">校長先生は下書きを確認・修正する形で回答できます</span></div>
+          </div>
+          <div class="field">
+            <label class="label">送付状況</label>
+            <div><span class="badge badge-warning">未送付</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="card-title">メール送付サンプル</h3>
+          <div style="background:#F9FAFB;padding:16px;border-radius:8px;font-size:13px;line-height:1.8;">
+            件名: 【AI校長】事前インタビューご協力のお願い<br><br>
+            中村 校長 様<br><br>
+            お世話になっております。下記URLより事前インタビューにご回答ください。AIが学校のHP等から下書きを作成しておりますので、確認・修正をお願いします。<br><br>
+            ▶ https://ai-kocho.example.jp/interview/sch_00125/aaaa-bbbb-cccc<br><br>
+            所要時間: 約20分
+          </div>
+          <div class="flex-row mt-4">
+            <button class="btn btn-secondary">メール文面を編集</button>
+            <div class="spacer"></div>
+            <button class="btn btn-primary" onclick="alert('送付完了(モック)')">送付済みにする</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="card-title">回答状況</h3>
+          <div class="text-sub">まだ回答は受領していません。送付後、ここに回答内容が表示されます。</div>
+        </div>
+      </div>
+
+      <!-- ④ AI校長モデル -->
+      <div class="detail-pane" id="detail-pane-model">
+        <div class="card" style="background:#EEF2FF;border-left:4px solid var(--primary);">
+          <div class="text-sm">
+            <b>📝 AI校長 人物設定(正本)</b>
+            <div class="text-sub" style="margin-top:4px;">事前インタビュー回答と下書きから整理した項目。編集は全授業・全生徒に反映されます。</div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <div class="persona-card">
+              <div class="persona-head"><span class="persona-num">①</span><span class="persona-title">校長先生ご自身のこと</span></div>
+              <div class="persona-field"><div class="plabel">お名前</div><div class="pvalue" contenteditable="true">中村 校長</div></div>
+              <div class="persona-field"><div class="plabel">教育への理念</div><div class="pvalue" contenteditable="true">「自律・協働・挑戦」を大切にし、生徒の個性を伸ばす。</div></div>
+            </div>
+            <div class="persona-card">
+              <div class="persona-head"><span class="persona-num">②</span><span class="persona-title">学校のこと</span></div>
+              <div class="persona-field"><div class="plabel">校訓</div><div class="pvalue" contenteditable="true">自律・協働・挑戦</div></div>
+              <div class="persona-field"><div class="plabel">学校の特色</div><div class="pvalue" contenteditable="true">山口の自然と歴史を生かした地域連携教育。</div></div>
+              <div class="persona-field"><div class="plabel">子どもたちの特色</div><div class="pvalue" contenteditable="true">明るく素直(要確認)</div></div>
+            </div>
+          </div>
+          <div>
+            <div class="persona-card">
+              <div class="persona-head"><span class="persona-num">③</span><span class="persona-title">地域のこと</span></div>
+              <div class="persona-field"><div class="plabel">山口の魅力</div><div class="pvalue" contenteditable="true">歴史・自然・食文化(ふぐ・瓦そば・地酒)の豊かさ。</div></div>
+            </div>
+            <div class="persona-card">
+              <div class="persona-head"><span class="persona-num">④</span><span class="persona-title">AI校長の話し方</span></div>
+              <div class="persona-field"><div class="plabel">口調</div><div class="pvalue" contenteditable="true">穏やかで、ときに山口弁(「〜じゃけぇ」「〜しちょる」)を交える。</div></div>
+              <div class="persona-field"><div class="plabel">雰囲気</div><div class="pvalue" contenteditable="true">やさしく、親しみやすく(校訓からの推定・要確認)</div></div>
+            </div>
+            <div class="card">
+              <h3 class="card-title">モデル状況</h3>
+              <div class="text-sm" style="line-height:2;">
+                <div><b>稼働状況:</b> <span class="badge badge-warning">未公開</span></div>
+                <div><b>最終更新:</b> 2026-04-15 14:02</div>
+                <div><b>バージョン:</b> v0.3 (下書き反映済)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex-row mt-4">
+          <button class="btn btn-ghost btn-sm">🔧 生プロンプトを見る</button>
+          <div class="spacer"></div>
+          <button class="btn btn-secondary">会話テスト</button>
+          <button class="btn btn-primary" onclick="alert('モデルを保存しました(モック)')">モデルを保存</button>
+        </div>
+      </div>
+
+      <!-- ⑤ 授業ルーム -->
+      <div class="detail-pane" id="detail-pane-rooms">
+        <div class="card">
+          <div class="flex-between">
+            <h3 class="card-title" style="margin:0;">この学校の授業ルーム</h3>
+            <button class="btn btn-primary btn-sm">＋ ルーム作成</button>
+          </div>
+          <div class="text-sub" style="padding:20px 0;text-align:center;">まだ授業ルームはありません。モデル稼働後に作成できます。</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+
+<!-- ======================================================================
+  ユーザー管理(管理者)
+====================================================================== -->
+<section class="screen" id="admin-users">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">AI校長<small>管理者コンソール</small></div>
+      <div class="sidebar-section">管理</div>
+      <div class="sidebar-item" onclick="show('admin-schools')"><span class="sidebar-icon">🏫</span>学校一覧</div>
+      <div class="sidebar-item active" onclick="show('admin-users')"><span class="sidebar-icon">👥</span>ユーザー管理</div>
+      <div class="sidebar-section">アカウント</div>
+      <div class="sidebar-item" onclick="show('login')"><span class="sidebar-icon">🚪</span>ログアウト</div>
+    </aside>
+    <main class="main">
+      <div class="page-header">
+        <div>
+          <div class="page-title">ユーザー管理</div>
+          <div class="page-sub">管理者アカウントと学校アカウントを一元管理</div>
+        </div>
+        <button class="btn btn-primary" id="users-add-btn">＋ 新規追加</button>
+      </div>
+
+      <div class="tabs" style="margin-bottom:16px;">
+        <div class="tab active" data-users-tab="admins" onclick="switchUsersTab(this)">管理者 (3)</div>
+        <div class="tab" data-users-tab="schools" onclick="switchUsersTab(this)">学校アカウント (12)</div>
+      </div>
+
+      <!-- 管理者タブ -->
+      <div id="users-pane-admins">
+        <div class="card" style="background:var(--primary-light);border-left:4px solid var(--primary);">
+          <div class="flex-row">
+            <span style="font-size:22px;">🛡</span>
+            <div>
+              <b>管理者ログイン方式</b>
+              <div class="text-sm text-sub">メールアドレス + パスワード。複数人の管理者を区別するため個別のアカウントを発行します。</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <table class="table">
+            <thead><tr><th>氏名</th><th>メールアドレス</th><th>役割</th><th>最終ログイン</th><th>状態</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td><b>運営 太郎</b></td><td>admin@ai-kocho.example.jp</td>
+                <td><span class="badge badge-info">スーパー管理者</span></td>
+                <td class="text-sub text-sm">2026-04-17 09:12</td>
+                <td><span class="badge badge-success">有効</span></td>
+                <td><button class="btn btn-ghost btn-sm">編集</button></td>
+              </tr>
+              <tr>
+                <td><b>サポート 花子</b></td><td>support@ai-kocho.example.jp</td>
+                <td><span class="badge badge-info">管理者</span></td>
+                <td class="text-sub text-sm">2026-04-16 14:30</td>
+                <td><span class="badge badge-success">有効</span></td>
+                <td><button class="btn btn-ghost btn-sm">編集</button></td>
+              </tr>
+              <tr>
+                <td><b>開発 次郎</b></td><td>dev@ai-kocho.example.jp</td>
+                <td><span class="badge badge-info">管理者</span></td>
+                <td class="text-sub text-sm">2026-04-10 11:00</td>
+                <td><span class="badge badge-gray">休止中</span></td>
+                <td><button class="btn btn-ghost btn-sm">編集</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 学校アカウントタブ -->
+      <div id="users-pane-schools" style="display:none;">
+        <div class="card" style="background:#FEF3C7;border-left:4px solid var(--warning);">
+          <div class="flex-row">
+            <span style="font-size:22px;">🔐</span>
+            <div>
+              <b>学校アカウントのログイン方式</b>
+              <div class="text-sm text-sub">学校ID + パスワード(管理者が設定)。メールアドレス登録は行いません。パスワードは管理者が発行し、先生に直接お伝えください。</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <table class="table">
+            <thead><tr><th>学校ID</th><th>学校名</th><th>担当の先生</th><th>パスワード</th><th>最終ログイン</th><th>状態</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code style="background:#F3F4F6;padding:2px 8px;border-radius:4px;">sch_00123</code></td>
+                <td><b>A中学校</b></td><td>例)山田 太郎</td>
+                <td><button class="btn btn-secondary btn-sm">🔐 再発行</button></td>
+                <td class="text-sub text-sm">2026-04-15 10:12</td>
+                <td><span class="badge badge-success">有効</span></td>
+                <td><button class="btn btn-ghost btn-sm">編集</button></td>
+              </tr>
+              <tr>
+                <td><code style="background:#F3F4F6;padding:2px 8px;border-radius:4px;">sch_00124</code></td>
+                <td><b>B小学校</b></td><td>鈴木 花子</td>
+                <td><button class="btn btn-secondary btn-sm">🔐 再発行</button></td>
+                <td class="text-sub text-sm">2026-04-10 09:00</td>
+                <td><span class="badge badge-success">有効</span></td>
+                <td><button class="btn btn-ghost btn-sm">編集</button></td>
+              </tr>
+              <tr>
+                <td><code style="background:#F3F4F6;padding:2px 8px;border-radius:4px;">sch_00125</code></td>
+                <td><b>C中学校</b></td><td>佐藤 健一</td>
+                <td><button class="btn btn-secondary btn-sm">🔐 再発行</button></td>
+                <td class="text-sub text-sm">—</td>
+                <td><span class="badge badge-warning">未ログイン</span></td>
+                <td><button class="btn btn-ghost btn-sm">編集</button></td>
+              </tr>
+              <tr>
+                <td><code style="background:#F3F4F6;padding:2px 8px;border-radius:4px;">sch_00126</code></td>
+                <td><b>D小学校</b></td><td>田中 美咲</td>
+                <td><button class="btn btn-secondary btn-sm">🔐 再発行</button></td>
+                <td class="text-sub text-sm">—</td>
+                <td><span class="badge badge-gray">未発行</span></td>
+                <td><button class="btn btn-ghost btn-sm">編集</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3 class="card-title">パスワード発行ガイド</h3>
+          <ol class="text-sm" style="padding-left:20px;">
+            <li>「🔐 再発行」ボタンを押すと、新しいランダムパスワードが生成されます</li>
+            <li>生成されたパスワードを先生に直接(電話・対面・封書等)お伝えください</li>
+            <li>先生側でのパスワード再設定は不要です。管理者が発行したパスワードをそのまま使用します</li>
+          </ol>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-3-A 学校ダッシュボード(先生)
+====================================================================== -->
+<section class="screen" id="teacher-dashboard">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">A中学校<small>先生ダッシュボード</small></div>
+      <div class="sidebar-section">メニュー</div>
+      <div class="sidebar-item active" onclick="show('teacher-dashboard')"><span class="sidebar-icon">🏠</span>ホーム</div>
+      <div class="sidebar-item" onclick="show('teacher-model')"><span class="sidebar-icon">🤖</span>AI校長モデル</div>
+      <div class="sidebar-item" onclick="show('teacher-interview')"><span class="sidebar-icon">📝</span>事前インタビュー</div>
+      <div class="sidebar-item" onclick="show('teacher-rooms')"><span class="sidebar-icon">📚</span>授業ルーム</div>
+      <div class="sidebar-item" onclick="show('teacher-test')"><span class="sidebar-icon">💬</span>会話テスト</div>
+      <div class="sidebar-section">管理者</div>
+      <div class="sidebar-item" onclick="show('admin-schools')"><span class="sidebar-icon">⬅</span>学校一覧へ戻る</div>
+      <div class="sidebar-item" onclick="show('login')"><span class="sidebar-icon">🚪</span>ログアウト</div>
+    </aside>
+    <main class="main">
+      <div class="page-header">
+        <div>
+          <div class="page-title">こんにちは、山田先生</div>
+          <div class="page-sub">A中学校 / 本日 2026-04-17</div>
+        </div>
+        <button class="btn btn-primary" onclick="show('teacher-room-setup')">＋ 新規授業ルーム</button>
+      </div>
+
+      <!-- セットアップ進捗 -->
+      <div class="card" style="padding:18px 20px;">
+        <div class="flex-between" style="margin-bottom:10px;">
+          <b>AI校長セットアップ進捗</b>
+          <span class="text-sub text-sm">管理者と共有されているワークフロー</span>
+        </div>
+        <div class="progress-stepper">
+          <span class="pdot done">✓</span><span class="plabel">基本情報</span>
+          <span class="pline"></span>
+          <span class="pdot done">✓</span><span class="plabel">テーマ設定</span>
+          <span class="pline"></span>
+          <span class="pdot done">✓</span><span class="plabel">素材収集</span>
+          <span class="pline"></span>
+          <span class="pdot done">✓</span><span class="plabel">下書き生成</span>
+          <span class="pline"></span>
+          <span class="pdot done">✓</span><span class="plabel">インタビュー送付</span>
+          <span class="pline"></span>
+          <span class="pdot done">✓</span><span class="plabel">モデル稼働</span>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">AI校長モデル</div><div class="stat-value"><span class="badge badge-success">稼働中</span></div><div class="stat-delta">本人Ver</div></div>
+        <div class="stat-card"><div class="stat-label">今月の授業</div><div class="stat-value">4</div></div>
+        <div class="stat-card"><div class="stat-label">参加生徒数</div><div class="stat-value">118</div></div>
+        <div class="stat-card"><div class="stat-label">未送信インタビュー</div><div class="stat-value">0</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="card-title">最近の授業ルーム</h3>
+          <table class="table">
+            <tbody>
+              <tr onclick="show('teacher-review')"><td>3年A組 情報社会授業</td><td><span class="badge badge-gray">終了</span></td><td class="text-sub text-sm">2026-04-15</td></tr>
+              <tr onclick="show('teacher-classroom')"><td>2年B組 情報社会授業</td><td><span class="badge badge-success">進行中</span></td><td class="text-sub text-sm">今</td></tr>
+              <tr onclick="show('teacher-room-setup')"><td>1年C組 情報社会授業</td><td><span class="badge badge-warning">予定</span></td><td class="text-sub text-sm">2026-04-20</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3 class="card-title">クイックアクション</h3>
+          <button class="btn btn-secondary btn-block mt-4" onclick="show('teacher-test')">💬 AI校長と会話テスト</button>
+          <button class="btn btn-secondary btn-block mt-4" onclick="show('teacher-model')">🤖 プロンプトを微調整</button>
+          <button class="btn btn-secondary btn-block mt-4" onclick="show('teacher-rooms')">📚 授業ルーム一覧</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-3-B AI校長モデル詳細・編集
+====================================================================== -->
+<section class="screen" id="teacher-model">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">A中学校<small>先生ダッシュボード</small></div>
+      <div class="sidebar-section">メニュー</div>
+      <div class="sidebar-item" onclick="show('teacher-dashboard')"><span class="sidebar-icon">🏠</span>ホーム</div>
+      <div class="sidebar-item active" onclick="show('teacher-model')"><span class="sidebar-icon">🤖</span>AI校長モデル</div>
+      <div class="sidebar-item" onclick="show('teacher-interview')"><span class="sidebar-icon">📝</span>事前インタビュー</div>
+      <div class="sidebar-item" onclick="show('teacher-rooms')"><span class="sidebar-icon">📚</span>授業ルーム</div>
+      <div class="sidebar-item" onclick="show('teacher-test')"><span class="sidebar-icon">💬</span>会話テスト</div>
+      <div class="sidebar-section">管理者</div>
+      <div class="sidebar-item" onclick="show('admin-schools')"><span class="sidebar-icon">⬅</span>学校一覧へ戻る</div>
+      <div class="sidebar-item" onclick="show('login')"><span class="sidebar-icon">🚪</span>ログアウト</div>
+    </aside>
+    <main class="main">
+      <div class="page-header">
+        <div>
+          <div class="page-title">AI校長モデル</div>
+          <div class="page-sub">本校のAIキャラクター</div>
+        </div>
+        <button class="btn btn-primary" onclick="show('teacher-test')">💬 会話テストへ</button>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <div class="flex-row">
+              <div class="avatar-circle">山</div>
+              <div>
+                <div style="font-weight:700;font-size:18px;">例)山田 太郎 校長</div>
+                <div><span class="badge badge-info">校長本人Ver</span> <span class="badge badge-success">稼働中</span></div>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="text-sm text-sub">顔写真</div>
+            <div class="flex-row mt-4">
+              <div style="width:80px;height:80px;border-radius:var(--radius);background:var(--primary-light);"></div>
+              <div>
+                <button class="btn btn-secondary btn-sm">変更</button>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="text-sm text-sub">声サンプル</div>
+            <div class="flex-row mt-4">
+              <button class="btn btn-secondary btn-sm">▶ 再生(15秒)</button>
+              <button class="btn btn-ghost btn-sm">↻ 再録音</button>
+            </div>
+            <div class="divider"></div>
+            <div class="text-sm text-sub">プロフィール</div>
+            <div class="text-sm mt-4">1965年生まれ、山口県山口市出身。教員歴30年。湯田温泉の地域行事や伝統文化に詳しい。趣味は書道と登山。</div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="background:#EEF2FF;border-left:4px solid var(--primary);">
+            <div class="text-sm">
+              <b>📝 AI校長 人物設定(正本)</b>
+              <div class="text-sub" style="margin-top:4px;">事前インタビューの回答からAIが自動で整理した項目です。編集すると全授業・全生徒に反映されます。<br>※「この授業だけの微調整」は授業運営画面で行ってください。</div>
+            </div>
+          </div>
+
+          <!-- ① 校長先生ご自身 -->
+          <div class="persona-card">
+            <div class="persona-head"><span class="persona-num">①</span><span class="persona-title">校長先生ご自身のこと</span></div>
+            <div class="persona-field">
+              <div class="plabel">お名前</div>
+              <div class="pvalue" contenteditable="true">例)山田 太郎</div>
+            </div>
+            <div class="persona-field">
+              <div class="plabel">学生時代の思い出</div>
+              <div class="pvalue" contenteditable="true">中学校では陸上部で長距離走をしていた。山口の山々を走った思い出。</div>
+            </div>
+            <div class="persona-field">
+              <div class="plabel">教育への理念</div>
+              <div class="pvalue" contenteditable="true">生徒一人ひとりの個性を大切にし、自律・協働・挑戦を促すことを信条とする。</div>
+            </div>
+          </div>
+
+          <!-- ② 学校のこと -->
+          <div class="persona-card">
+            <div class="persona-head"><span class="persona-num">②</span><span class="persona-title">学校のこと</span></div>
+            <div class="persona-field">
+              <div class="plabel">校訓</div>
+              <div class="pvalue" contenteditable="true">自律・協働・挑戦</div>
+            </div>
+            <div class="persona-field">
+              <div class="plabel">学校の特色</div>
+              <div class="pvalue" contenteditable="true">山口の自然と歴史を生かした地域連携教育。地域の方々が年に複数回来校し、生徒と交流する。</div>
+            </div>
+            <div class="persona-field">
+              <div class="plabel">子どもたちの特色</div>
+              <div class="pvalue" contenteditable="true">明るく素直。地域行事への関心が高い。</div>
+            </div>
+          </div>
+
+          <!-- ③ 地域のこと -->
+          <div class="persona-card">
+            <div class="persona-head"><span class="persona-num">③</span><span class="persona-title">地域のこと</span></div>
+            <div class="persona-field">
+              <div class="plabel">地域(湯田)の魅力</div>
+              <div class="pvalue" contenteditable="true">湯田温泉を中心に、古くから湯治・文学・交流の文化が根付く地域。</div>
+            </div>
+            <div class="persona-field">
+              <div class="plabel">山口の魅力</div>
+              <div class="pvalue" contenteditable="true">歴史・自然・食文化(ふぐ・瓦そば・地酒)の豊かさ。</div>
+            </div>
+          </div>
+
+          <!-- ④ 話し方 -->
+          <div class="persona-card">
+            <div class="persona-head"><span class="persona-num">④</span><span class="persona-title">AI校長の話し方</span></div>
+            <div class="persona-field">
+              <div class="plabel">口調・雰囲気</div>
+              <div class="pvalue" contenteditable="true">穏やかで、ときに山口弁(「〜じゃけぇ」「〜しちょる」)を交える。親しみやすく、やさしい。</div>
+            </div>
+            <div class="persona-field">
+              <div class="plabel">子どもたちとどんな話をしたいか</div>
+              <div class="pvalue" contenteditable="true">自分の体験と学校・地域のエピソードを交えながら、生徒の好奇心に応える。</div>
+            </div>
+            <div class="persona-field">
+              <div class="plabel">よく使う言葉・口癖</div>
+              <div class="pvalue" contenteditable="true">「そうじゃねぇ」「なるほど」「一緒に考えよう」</div>
+            </div>
+          </div>
+
+          <div class="flex-row mt-4">
+            <button class="btn btn-ghost btn-sm" onclick="alert('構造化されたカード表示と生テキストプロンプト表示の切替(モック)')">🔧 生プロンプトを見る(上級者)</button>
+            <div class="spacer"></div>
+            <button class="btn btn-secondary">変更を破棄</button>
+            <button class="btn btn-primary">保存</button>
+            <button class="btn btn-success" onclick="show('teacher-test')">保存してテスト</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-3-C 会話テスト
+====================================================================== -->
+<section class="screen" id="teacher-test">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">A中学校<small>先生ダッシュボード</small></div>
+      <div class="sidebar-section">メニュー</div>
+      <div class="sidebar-item" onclick="show('teacher-dashboard')"><span class="sidebar-icon">🏠</span>ホーム</div>
+      <div class="sidebar-item" onclick="show('teacher-model')"><span class="sidebar-icon">🤖</span>AI校長モデル</div>
+      <div class="sidebar-item" onclick="show('teacher-interview')"><span class="sidebar-icon">📝</span>事前インタビュー</div>
+      <div class="sidebar-item" onclick="show('teacher-rooms')"><span class="sidebar-icon">📚</span>授業ルーム</div>
+      <div class="sidebar-item active" onclick="show('teacher-test')"><span class="sidebar-icon">💬</span>会話テスト</div>
+      <div class="sidebar-section">管理者</div>
+      <div class="sidebar-item" onclick="show('admin-schools')"><span class="sidebar-icon">⬅</span>学校一覧へ戻る</div>
+      <div class="sidebar-item" onclick="show('login')"><span class="sidebar-icon">🚪</span>ログアウト</div>
+    </aside>
+    <main class="main">
+      <div class="page-header">
+        <div>
+          <div class="page-title">会話テスト(セルフチェック)</div>
+          <div class="page-sub">授業前にAI校長の挙動を確認できます</div>
+        </div>
+        <button class="btn btn-secondary" onclick="show('teacher-model')">モデル詳細へ</button>
+      </div>
+      <div class="grid-2">
+        <div class="card" style="display:flex;flex-direction:column;height:560px;">
+          <div class="flex-row" style="padding-bottom:12px;border-bottom:1px solid var(--border);">
+            <div class="avatar-circle" style="width:36px;height:36px;font-size:14px;">山</div>
+            <div>
+              <div style="font-weight:700;font-size:14px;">例)山田 太郎 校長</div>
+              <div class="text-sm text-sub">テストモード</div>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:16px 0;">
+            <div class="chat-bubble ai"><div class="bubble-label">AI校長</div><div class="bubble-content">こんにちは!今日は何を話そうかな?学校のことでも、地域のことでも、なんでも聞いてくださいね。</div></div>
+            <div class="chat-bubble me"><div class="bubble-label">あなた</div><div class="bubble-content">校長先生の好きな食べ物は何ですか?</div></div>
+            <div class="chat-bubble ai"><div class="bubble-label">AI校長</div><div class="bubble-content">瓦そばが大好きなんよ。山口の郷土料理でな、熱した瓦の上に茶そばをのせて食べるんじゃけぇ、見た目もご馳走じゃろ。</div></div>
+          </div>
+          <div class="flex-row" style="padding-top:12px;border-top:1px solid var(--border);">
+            <input class="input" placeholder="メッセージを入力…" />
+            <button class="btn btn-primary btn-sm">送信</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="card-title">プロンプト調整(即反映)</h3>
+          <textarea class="textarea" style="min-height:280px;font-family:monospace;font-size:12px;">口調: 穏やかで、ときに山口弁(「〜じゃけぇ」「〜しちょる」など)を交える。
+話題: 湯田温泉、地域の祭り、部活動、校訓。</textarea>
+          <div class="flex-row mt-4">
+            <button class="btn btn-secondary btn-sm">やさしい</button>
+            <button class="btn btn-secondary btn-sm">方言強め</button>
+            <div class="spacer"></div>
+            <button class="btn btn-primary btn-sm">反映</button>
+          </div>
+          <div class="divider"></div>
+          <div class="text-sm text-sub">テスト履歴</div>
+          <div class="text-sm mt-4">• 2026-04-15 14:30(12件)<br>• 2026-04-12 09:15(8件)</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-3-D 事前インタビュー管理
+====================================================================== -->
+<section class="screen" id="teacher-interview">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">A中学校<small>先生ダッシュボード</small></div>
+      <div class="sidebar-section">メニュー</div>
+      <div class="sidebar-item" onclick="show('teacher-dashboard')"><span class="sidebar-icon">🏠</span>ホーム</div>
+      <div class="sidebar-item" onclick="show('teacher-model')"><span class="sidebar-icon">🤖</span>AI校長モデル</div>
+      <div class="sidebar-item active" onclick="show('teacher-interview')"><span class="sidebar-icon">📝</span>事前インタビュー</div>
+      <div class="sidebar-item" onclick="show('teacher-rooms')"><span class="sidebar-icon">📚</span>授業ルーム</div>
+      <div class="sidebar-item" onclick="show('teacher-test')"><span class="sidebar-icon">💬</span>会話テスト</div>
+      <div class="sidebar-section">管理者</div>
+      <div class="sidebar-item" onclick="show('admin-schools')"><span class="sidebar-icon">⬅</span>学校一覧へ戻る</div>
+      <div class="sidebar-item" onclick="show('login')"><span class="sidebar-icon">🚪</span>ログアウト</div>
+    </aside>
+    <main class="main">
+      <div class="page-header">
+        <div>
+          <div class="page-title">事前インタビュー</div>
+          <div class="page-sub">AI校長モデル作成のための事前アンケート</div>
+        </div>
+      </div>
+
+      <div class="card" style="background:var(--primary-light);border-left:4px solid var(--primary);">
+        <div class="flex-row">
+          <span style="font-size:22px;">ℹ️</span>
+          <div class="text-sm">
+            <b>1校につき原則1回・校長先生お一人</b>にお答えいただきます。<br>
+            回答後も、必要に応じて「回答をやり直す」「一部を調整する」ことができます。
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="flex-between" style="margin-bottom:16px;">
+          <div>
+            <div class="text-sub text-sm">インタビュー状態</div>
+            <h3 style="font-size:18px;margin:2px 0 0;">A中学校 / 校長本人Ver</h3>
+          </div>
+          <span class="badge badge-success" style="padding:6px 14px;font-size:13px;">✓ 回答完了</span>
+        </div>
+        <div class="grid-3">
+          <div>
+            <div class="text-sub text-sm">回答者</div>
+            <div style="font-weight:700;">例)山田 太郎 校長</div>
+          </div>
+          <div>
+            <div class="text-sub text-sm">回答日</div>
+            <div style="font-weight:700;">2026-04-10</div>
+          </div>
+          <div>
+            <div class="text-sub text-sm">回答セクション</div>
+            <div style="font-weight:700;">4 / 4 セクション完了</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="flex-row" style="flex-wrap:wrap;gap:8px;">
+          <button class="btn btn-secondary">📄 回答内容を見る</button>
+          <button class="btn btn-secondary">✏️ 回答を調整する</button>
+          <button class="btn btn-secondary">↻ 回答をやり直す</button>
+          <div class="spacer"></div>
+          <button class="btn btn-ghost btn-sm">回答を削除</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">回答セクション別のプレビュー</h3>
+        <table class="table">
+          <tbody>
+            <tr><td style="width:40%;"><b>① 校長先生ご自身のこと</b></td><td class="text-sub">基本情報・学生時代・専門・趣味・理念 など</td><td><span class="badge badge-success">完了</span></td></tr>
+            <tr><td><b>② 学校のこと</b></td><td class="text-sub">校訓・特色ある取り組み・子どもたちの特色 など</td><td><span class="badge badge-success">完了</span></td></tr>
+            <tr><td><b>③ 地域のこと</b></td><td class="text-sub">この地域の魅力・山口の魅力・地域との関わり</td><td><span class="badge badge-success">完了</span></td></tr>
+            <tr><td><b>④ AI校長の話し方</b></td><td class="text-sub">話したい内容・雰囲気・口癖 など</td><td><span class="badge badge-success">完了</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">発行済みURL</h3>
+        <div class="url-box">
+          <span class="spacer">https://ai-kocho.example.jp/interview/a9k3n7xy2bQ1pW4c</span>
+          <button class="btn btn-secondary btn-sm">コピー</button>
+          <button class="btn btn-ghost btn-sm" onclick="show('interview-start')">プレビュー</button>
+        </div>
+        <div class="hint">このURLは校長先生宛に個別送付されます。ログイン不要で回答できます。URLは回答完了後も「調整・やり直し」用として有効です。</div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-3-E 授業ルーム一覧
+====================================================================== -->
+<section class="screen" id="teacher-rooms">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">A中学校<small>先生ダッシュボード</small></div>
+      <div class="sidebar-section">メニュー</div>
+      <div class="sidebar-item" onclick="show('teacher-dashboard')"><span class="sidebar-icon">🏠</span>ホーム</div>
+      <div class="sidebar-item" onclick="show('teacher-model')"><span class="sidebar-icon">🤖</span>AI校長モデル</div>
+      <div class="sidebar-item" onclick="show('teacher-interview')"><span class="sidebar-icon">📝</span>事前インタビュー</div>
+      <div class="sidebar-item active" onclick="show('teacher-rooms')"><span class="sidebar-icon">📚</span>授業ルーム</div>
+      <div class="sidebar-item" onclick="show('teacher-test')"><span class="sidebar-icon">💬</span>会話テスト</div>
+      <div class="sidebar-section">管理者</div>
+      <div class="sidebar-item" onclick="show('admin-schools')"><span class="sidebar-icon">⬅</span>学校一覧へ戻る</div>
+      <div class="sidebar-item" onclick="show('login')"><span class="sidebar-icon">🚪</span>ログアウト</div>
+    </aside>
+    <main class="main">
+      <div class="page-header">
+        <div>
+          <div class="page-title">授業ルーム一覧</div>
+          <div class="page-sub">すべての授業ルーム</div>
+        </div>
+        <div class="flex-row" style="gap:8px;">
+          <button class="btn btn-secondary" onclick="show('teacher-worksheets')">📝 生徒ワークシート</button>
+          <button class="btn btn-primary" onclick="show('teacher-room-setup')">＋ 新規授業ルームを作成</button>
+        </div>
+      </div>
+      <div class="card">
+        <table class="table">
+          <thead><tr><th>ルーム名</th><th>状態</th><th>開始日時</th><th>参加生徒</th><th>ワークシート</th><th>フェーズ構成</th><th></th></tr></thead>
+          <tbody>
+            <tr onclick="show('teacher-classroom')">
+              <td><b>2年B組 情報社会授業</b></td>
+              <td><span class="badge badge-success">進行中</span></td>
+              <td>2026-04-17 10:30</td>
+              <td>28 / 32</td>
+              <td><a onclick="event.stopPropagation();show('teacher-worksheets')" style="color:var(--primary);cursor:pointer;text-decoration:underline;">22 / 28 提出</a></td>
+              <td><span class="tag">アイブレ</span><span class="tag">本題</span><span class="tag">ポジ</span></td>
+              <td>›</td>
+            </tr>
+            <tr onclick="show('teacher-review')">
+              <td><b>3年A組 情報社会授業</b></td>
+              <td><span class="badge badge-gray">終了</span></td>
+              <td>2026-04-15 09:00</td>
+              <td>32 / 32</td>
+              <td><a onclick="event.stopPropagation();show('teacher-worksheets')" style="color:var(--primary);cursor:pointer;text-decoration:underline;">30 / 32 提出</a></td>
+              <td><span class="tag">アイブレ</span><span class="tag">本題</span><span class="tag">ポジ</span></td>
+              <td>›</td>
+            </tr>
+            <tr onclick="show('teacher-room-setup')">
+              <td><b>1年C組 情報社会授業</b></td>
+              <td><span class="badge badge-warning">予定</span></td>
+              <td>2026-04-20 14:00</td>
+              <td>0 / 30</td>
+              <td><span class="text-sub text-sm">— 未開始 —</span></td>
+              <td><span class="tag">アイブレ</span><span class="tag">本題</span></td>
+              <td>›</td>
+            </tr>
+            <tr onclick="show('teacher-review')">
+              <td><b>3年B組 情報社会授業</b></td>
+              <td><span class="badge badge-gray">終了</span></td>
+              <td>2026-04-10 10:30</td>
+              <td>30 / 30</td>
+              <td><a onclick="event.stopPropagation();show('teacher-worksheets')" style="color:var(--primary);cursor:pointer;text-decoration:underline;">28 / 30 提出</a></td>
+              <td><span class="tag">アイブレ</span><span class="tag">本題</span></td>
+              <td>›</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ======================================================================
+  生徒ワークシート閲覧(先生)
+====================================================================== -->
+<section class="screen" id="teacher-worksheets">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">A中学校<small>先生ダッシュボード</small></div>
+      <div class="sidebar-section">メニュー</div>
+      <div class="sidebar-item" onclick="show('teacher-dashboard')"><span class="sidebar-icon">🏠</span>ホーム</div>
+      <div class="sidebar-item" onclick="show('teacher-model')"><span class="sidebar-icon">🤖</span>AI校長モデル</div>
+      <div class="sidebar-item" onclick="show('teacher-interview')"><span class="sidebar-icon">📝</span>事前インタビュー</div>
+      <div class="sidebar-item active" onclick="show('teacher-rooms')"><span class="sidebar-icon">📚</span>授業ルーム</div>
+      <div class="sidebar-item" onclick="show('teacher-test')"><span class="sidebar-icon">💬</span>会話テスト</div>
+      <div class="sidebar-section">管理者</div>
+      <div class="sidebar-item" onclick="show('admin-schools')"><span class="sidebar-icon">⬅</span>学校一覧へ戻る</div>
+      <div class="sidebar-item" onclick="show('login')"><span class="sidebar-icon">🚪</span>ログアウト</div>
+    </aside>
+    <main class="main">
+      <div class="breadcrumb"><a onclick="show('teacher-rooms')">授業ルーム</a> / 2年B組 / 生徒ワークシート</div>
+      <div class="page-header">
+        <div>
+          <div class="page-title">生徒の事前ワークシート</div>
+          <div class="page-sub">2年B組 情報社会授業 / 提出 22 / 28 名</div>
+        </div>
+        <div class="flex-row" style="gap:8px;">
+          <select class="select" style="width:200px;">
+            <option>すべてのルーム</option>
+            <option selected>2年B組 情報社会授業</option>
+            <option>3年A組 情報社会授業</option>
+            <option>3年B組 情報社会授業</option>
+          </select>
+          <button class="btn btn-secondary">CSVダウンロード</button>
+        </div>
+      </div>
+
+      <div class="grid-2 mt-4" style="grid-template-columns: 280px 1fr;gap:16px;">
+        <!-- 左: 生徒リスト -->
+        <div class="card" style="padding:0;overflow:hidden;max-height:700px;overflow-y:auto;">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;background:#F9FAFB;">
+            生徒一覧(28名)
+          </div>
+          <div class="ws-student active" onclick="selectWsStudent(this)" style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;background:#EEF2FF;">
+            <div style="font-weight:700;font-size:14px;">田中 花子</div>
+            <div class="text-sm text-sub">2026-04-16 提出</div>
+          </div>
+          <div class="ws-student" onclick="selectWsStudent(this)" style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;">
+            <div style="font-weight:700;font-size:14px;">佐藤 健太</div>
+            <div class="text-sm text-sub">2026-04-16 提出</div>
+          </div>
+          <div class="ws-student" onclick="selectWsStudent(this)" style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;">
+            <div style="font-weight:700;font-size:14px;">鈴木 一郎</div>
+            <div class="text-sm text-sub">2026-04-15 提出</div>
+          </div>
+          <div class="ws-student" onclick="selectWsStudent(this)" style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;">
+            <div style="font-weight:700;font-size:14px;">高橋 美咲</div>
+            <div class="text-sm text-sub">2026-04-16 提出</div>
+          </div>
+          <div class="ws-student" onclick="selectWsStudent(this)" style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;">
+            <div style="font-weight:700;font-size:14px;">伊藤 翔太</div>
+            <div class="text-sm text-sub">2026-04-16 提出</div>
+          </div>
+          <div class="ws-student" onclick="selectWsStudent(this)" style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;opacity:.6;">
+            <div style="font-weight:700;font-size:14px;">渡辺 大輔 <span class="badge badge-warning" style="font-size:10px;">未提出</span></div>
+            <div class="text-sm text-sub">—</div>
+          </div>
+          <div class="ws-student" onclick="selectWsStudent(this)" style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;">
+            <div style="font-weight:700;font-size:14px;">山本 さくら</div>
+            <div class="text-sm text-sub">2026-04-15 提出</div>
+          </div>
+          <div class="ws-student" onclick="selectWsStudent(this)" style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;">
+            <div style="font-weight:700;font-size:14px;">中村 拓海</div>
+            <div class="text-sm text-sub">2026-04-16 提出</div>
+          </div>
+          <div class="ws-student" onclick="selectWsStudent(this)" style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;opacity:.6;">
+            <div style="font-weight:700;font-size:14px;">小林 陽菜 <span class="badge badge-warning" style="font-size:10px;">未提出</span></div>
+            <div class="text-sm text-sub">—</div>
+          </div>
+          <div style="padding:12px 16px;text-align:center;font-size:12px;color:var(--text-sub);">…他 19名</div>
+        </div>
+
+        <!-- 右: 選択中の生徒のワークシート -->
+        <div>
+          <div class="card">
+            <div class="flex-between">
+              <div>
+                <h3 style="font-size:18px;margin-bottom:4px;">田中 花子 さんの事前ワークシート</h3>
+                <div class="text-sm text-sub">提出日: 2026-04-16 19:23</div>
+              </div>
+              <span class="badge badge-success">✓ 提出済み</span>
+            </div>
+
+            <div class="divider"></div>
+
+            <div style="border-left:4px solid var(--primary);padding-left:14px;margin-bottom:20px;">
+              <h4 style="font-size:14px;color:var(--primary);margin-bottom:8px;">① アイスブレイクで聞きたいこと</h4>
+              <div class="text-sm" style="background:#FEF3C7;padding:12px 14px;border-radius:var(--radius);line-height:1.8;">
+                1. 校長先生の好きな食べ物は何ですか?<br>
+                2. この地域で自慢できるところはどこですか?<br>
+                3. 校長先生が生徒だった頃の思い出を聞きたいです
+              </div>
+            </div>
+
+            <div style="border-left:4px solid #10B981;padding-left:14px;">
+              <h4 style="font-size:14px;color:#059669;margin-bottom:8px;">② 本題トークで話したいこと</h4>
+              <div class="text-sm text-sub" style="margin-bottom:8px;">テーマ: 学校や地域、山口の魅力について話してみよう</div>
+              <div class="text-sm" style="background:#ECFDF5;padding:12px 14px;border-radius:var(--radius);line-height:1.8;">
+                学校の周りに湯田温泉があって、登下校中に温泉の匂いがするのが好き。あと、図書室が新しくなって窓から山が見えるのがいいなと思う。地域の人が学校に来てくれるイベントも、他の学校にはないと思うので自慢したい。
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="background:#F9FAFB;">
+            <div class="text-sm">
+              <b>📌 このワークシートの扱いについて</b><br>
+              <span class="text-sub">生徒本人には「記入した内容は先生に共有される」旨を名前入力画面でお知らせしています。授業中は生徒のメモ欄にも同じ内容が表示されます。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-3-F 授業ルーム作成・設定
+====================================================================== -->
+<section class="screen" id="teacher-room-setup">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">A中学校<small>先生ダッシュボード</small></div>
+      <div class="sidebar-section">メニュー</div>
+      <div class="sidebar-item" onclick="show('teacher-dashboard')"><span class="sidebar-icon">🏠</span>ホーム</div>
+      <div class="sidebar-item" onclick="show('teacher-model')"><span class="sidebar-icon">🤖</span>AI校長モデル</div>
+      <div class="sidebar-item" onclick="show('teacher-interview')"><span class="sidebar-icon">📝</span>事前インタビュー</div>
+      <div class="sidebar-item active" onclick="show('teacher-rooms')"><span class="sidebar-icon">📚</span>授業ルーム</div>
+      <div class="sidebar-item" onclick="show('teacher-test')"><span class="sidebar-icon">💬</span>会話テスト</div>
+      <div class="sidebar-section">管理者</div>
+      <div class="sidebar-item" onclick="show('admin-schools')"><span class="sidebar-icon">⬅</span>学校一覧へ戻る</div>
+      <div class="sidebar-item" onclick="show('login')"><span class="sidebar-icon">🚪</span>ログアウト</div>
+    </aside>
+    <main class="main">
+      <div class="breadcrumb"><a onclick="show('teacher-rooms')">授業ルーム</a> / 新規作成</div>
+      <div class="page-header">
+        <div>
+          <div class="page-title">授業ルームを作成</div>
+          <div class="page-sub">フェーズ構成・テーマ・URL発行を設定します</div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <h3 class="card-title">基本情報</h3>
+            <div class="field"><label class="label">授業ルーム名</label>
+              <input class="input" value="3年A組 11月20日" /></div>
+            <div class="grid-2">
+              <div class="field"><label class="label">開始予定日時</label>
+                <input class="input" type="datetime-local" value="2026-04-20T10:30" /></div>
+              <div class="field"><label class="label">終了予定日時</label>
+                <input class="input" type="datetime-local" value="2026-04-20T11:20" /></div>
+            </div>
+            <div class="hint">URLはこの時間内のみ有効になります</div>
+          </div>
+          <div class="card">
+            <h3 class="card-title">フェーズ構成</h3>
+            <div class="checkbox-row"><input type="checkbox" checked /> <b>アイスブレイク</b> <span class="text-sm text-sub">— 生徒がAIに質問する時間</span></div>
+            <div class="checkbox-row"><input type="checkbox" checked /> <b>本題トーク</b> <span class="text-sm text-sub">— AIから生徒への問いかけ</span></div>
+            <div class="checkbox-row"><input type="checkbox" checked /> <b>ポジショニング</b> <span class="text-sm text-sub">— マップ上で立場を表現</span></div>
+            <div class="checkbox-row"><input type="checkbox" /> <b>事前ワークシート</b> <span class="text-sm text-sub">— 授業前にメモを記入</span></div>
+          </div>
+          <div class="card">
+            <h3 class="card-title">テーマ設定</h3>
+            <div class="field"><label class="label">アイスブレイクのテーマ</label>
+              <input class="input" value="AI校長に質問してみよう" /></div>
+            <div class="field"><label class="label">本題トークのテーマ <span class="text-sub text-sm">(学校のデフォルトを引継ぎ)</span></label>
+              <input class="input" value="学校や地域、山口の魅力について話してみよう" />
+              <div class="text-sub text-sm" style="margin-top:4px;">学校単位で1つ設定しているテーマを引き継ぎます。必要ならこの授業回だけ上書き可。</div></div>
+            <div class="field"><label class="label">ポジショニングのラベル</label>
+              <div class="grid-2">
+                <input class="input" value="校長先生と言える" />
+                <input class="input" value="言えない" />
+              </div></div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <h3 class="card-title">生徒用URLの発行</h3>
+            <button class="btn btn-primary btn-block">🔗 URLを発行する</button>
+            <div class="divider"></div>
+            <div class="text-sm text-sub">生徒用URL</div>
+            <div class="url-box mt-4">
+              <span class="spacer">https://ai-kocho.example.jp/class/xY9kLmN3pQ2</span>
+              <button class="btn btn-secondary btn-sm">コピー</button>
+            </div>
+            <div class="flex-row mt-4">
+              <div class="qr-box"></div>
+              <div>
+                <div class="text-sm">QRコードを印刷して配布できます</div>
+                <button class="btn btn-secondary btn-sm mt-4">PDFダウンロード</button>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="text-sm text-sub">事前ワークシート用URL</div>
+            <div class="url-box mt-4" style="opacity:.5;">
+              <span class="spacer">事前ワークシートをオンにすると発行されます</span>
+            </div>
+          </div>
+          <div class="card">
+            <h3 class="card-title">プレビュー</h3>
+            <button class="btn btn-secondary btn-block" onclick="show('student-name')">👀 生徒視点でプレビュー</button>
+            <button class="btn btn-secondary btn-block mt-4" onclick="show('teacher-classroom')">🎬 授業運営画面を開く</button>
+          </div>
+          <div class="flex-row">
+            <button class="btn btn-secondary" onclick="show('teacher-rooms')">キャンセル</button>
+            <div class="spacer"></div>
+            <button class="btn btn-primary" onclick="show('teacher-rooms')">保存</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-3-G 授業運営画面
+====================================================================== -->
+<section class="screen" id="teacher-classroom">
+  <div class="classroom-layout-v31">
+    <!-- ヘッダー -->
+    <div class="classroom-header">
+      <div class="flex-row">
+        <button class="btn btn-secondary btn-sm" onclick="show('teacher-rooms')">← 戻る</button>
+        <div>
+          <div style="font-weight:700;">2年B組 情報社会授業</div>
+          <div class="text-sm text-sub">28 / 32人 参加中 • 経過 <span id="class-elapsed">18</span>分</div>
+        </div>
+      </div>
+      <div class="flex-row">
+        <button class="btn btn-secondary btn-sm" onclick="alert('授業を一時停止しました(モック)')">⏸ 一時停止</button>
+        <button class="btn btn-danger btn-sm" onclick="if(confirm('授業を終了して振り返り画面に移動しますか?')) show('teacher-review')">授業を終了</button>
+      </div>
+    </div>
+
+    <!-- フェーズ進行バー(5ステップ: 各フェーズ間にサマリーを挟む) -->
+    <div class="phase-bar">
+      <div class="phase-chip current" data-phase="0" onclick="jumpPhase(0)">
+        <div class="pname">① アイスブレイク</div>
+        <div class="pmeta">生徒 → AI校長に質問</div>
+      </div>
+      <span class="phase-arrow">→</span>
+      <div class="phase-chip phase-summary" data-phase="1" onclick="jumpPhase(1)">
+        <div class="pname">📊 サマリー①</div>
+        <div class="pmeta">アイスブレイクを振り返り</div>
+      </div>
+      <span class="phase-arrow">→</span>
+      <div class="phase-chip" data-phase="2" onclick="jumpPhase(2)">
+        <div class="pname">② 本題トーク</div>
+        <div class="pmeta">AIから生徒に問いかけ</div>
+      </div>
+      <span class="phase-arrow">→</span>
+      <div class="phase-chip phase-summary" data-phase="3" onclick="jumpPhase(3)">
+        <div class="pname">📊 サマリー②</div>
+        <div class="pmeta">本題を振り返り</div>
+      </div>
+      <span class="phase-arrow">→</span>
+      <div class="phase-chip" data-phase="4" onclick="jumpPhase(4)">
+        <div class="pname">③ ポジショニング</div>
+        <div class="pmeta">マップに立場を表現</div>
+      </div>
+      <div style="width:10px;"></div>
+      <button class="btn btn-primary" id="phase-advance-btn" onclick="advancePhase()">次へ →</button>
+    </div>
+
+    <!-- 左: 生徒グリッド -->
+    <div class="classroom-pane-v31">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-weight:700;font-size:13px;">生徒 (28 / 32)</div>
+          <div class="text-sub" style="font-size:11px;">タイルをクリックして詳細</div>
+        </div>
+        <div class="text-sub" style="font-size:11px;display:flex;flex-direction:column;gap:2px;">
+          <div><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:4px;"></span>発言中</div>
+          <div><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--danger);margin-right:4px;"></span>要注意</div>
+        </div>
+      </div>
+      <div class="student-grid" id="student-grid"></div>
+    </div>
+
+    <!-- 中央: フェーズ別コンテンツ -->
+    <div class="classroom-pane-v31">
+      <div id="center-header" style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-weight:700;font-size:14px;" id="center-title">📡 クラス全体の様子</div>
+        <div id="center-view-toggle" style="display:none;">
+          <button class="btn btn-ghost btn-sm" onclick="toggleClassroomView('stream')" id="cv-stream-btn" style="color:var(--primary);font-weight:700;">ストリーム</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleClassroomView('highlights')" id="cv-highlights-btn">ハイライト</button>
+        </div>
+      </div>
+
+      <!-- ストリームビュー -->
+      <div id="classroom-view-stream" style="padding:16px;">
+        <div class="chat-log">
+          <div class="chat-msg"><div class="who">田中 花子 → AI</div>校長先生の好きな食べ物は?</div>
+          <div class="chat-msg" style="background:var(--primary-light);"><div class="who">AI → 田中 花子</div>瓦そばが大好きなんよ。山口の郷土料理でな、熱した瓦の上に茶そばをのせて食べるんじゃけぇ。</div>
+          <div class="chat-msg"><div class="who">鈴木 一郎 → AI</div>校長先生が一番好きな地域のお祭りは?</div>
+          <div class="chat-msg" style="background:var(--primary-light);"><div class="who">AI → 鈴木 一郎</div>やっぱり七夕祭りじゃなぁ。湯田温泉街に笹が並ぶんよ。子どもの頃からの楽しみじゃった。</div>
+          <div class="chat-msg"><div class="who">佐藤 健太 → AI</div>地域の祭りで校長先生が一番好きなのは?</div>
+          <div class="chat-msg" style="background:var(--primary-light);"><div class="who">AI → 佐藤 健太</div>やっぱり夏の七夕祭りだな。地域の人みんなが集まって…</div>
+          <div class="chat-msg"><div class="who">高橋 美咲 → AI</div>生徒時代の部活は何でしたか?</div>
+          <div class="chat-msg" style="background:var(--primary-light);"><div class="who">AI → 高橋 美咲</div>陸上部で長距離をやっとったよ。山口の山々を走ったんよ。</div>
+        </div>
+      </div>
+
+      <!-- ハイライトビュー -->
+      <div id="classroom-view-highlights" style="padding:16px;display:none;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;">💬 発言が活発な生徒 TOP5</div>
+        <div class="card" style="padding:0;">
+          <div class="top-speaker"><span class="rank">1</span>田中 花子<span class="text-sub" style="margin-left:auto;font-size:12px;">8発言</span></div>
+          <div class="top-speaker"><span class="rank">2</span>佐藤 健太<span class="text-sub" style="margin-left:auto;font-size:12px;">6発言</span></div>
+          <div class="top-speaker"><span class="rank">3</span>鈴木 一郎<span class="text-sub" style="margin-left:auto;font-size:12px;">5発言</span></div>
+          <div class="top-speaker"><span class="rank">4</span>高橋 美咲<span class="text-sub" style="margin-left:auto;font-size:12px;">4発言</span></div>
+          <div class="top-speaker"><span class="rank">5</span>伊藤 彩<span class="text-sub" style="margin-left:auto;font-size:12px;">3発言</span></div>
+        </div>
+
+        <div style="font-weight:700;font-size:13px;margin:16px 0 10px;">⚠ 注目すべき発言(AI抽出)</div>
+        <div class="highlight-card">
+          <b>鈴木 一郎</b> (3分前)<br>
+          「校長先生が一番好きな地域のお祭りは?」 → 本題テーマ(山口の魅力)に橋渡しできる質問
+        </div>
+        <div class="highlight-card" style="background:#FEE2E2;border-left-color:var(--danger);">
+          <b>渡辺 翔</b> (5分前から無発言)<br>
+          参加しているが発言がない。声かけをご検討ください。
+        </div>
+
+        <div style="font-weight:700;font-size:13px;margin:16px 0 10px;">📊 現フェーズ サマリー(自動更新)</div>
+        <div class="card" style="background:var(--primary-light);padding:12px;">
+          <b>よくある質問トップ3</b>
+          <ol style="padding-left:20px;margin:6px 0;font-size:13px;">
+            <li>校長先生の好きな食べ物・趣味</li>
+            <li>地域のお祭り・名物</li>
+            <li>生徒時代の思い出</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- サマリービュー(フェーズ1・3時表示) -->
+      <div id="classroom-view-summary" style="padding:16px;display:none;">
+        <div class="card" style="background:#EEF2FF;border-left:4px solid var(--primary);padding:14px;">
+          <div class="flex-between">
+            <b id="summary-phase-title">📊 アイスブレイクのサマリー</b>
+            <span class="badge badge-success">自動生成</span>
+          </div>
+          <div class="text-sub text-sm" style="margin-top:4px;">AIとの対話で内容を精緻化できます。投影して生徒と共有しましょう。</div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div style="padding:12px 16px;background:#F9FAFB;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <b style="font-size:13px;">📝 サマリー本文</b>
+            <span class="text-sub text-sm">クリックで編集</span>
+          </div>
+          <div style="padding:14px 16px;line-height:1.8;font-size:13px;" contenteditable="true" id="summary-body">
+            <b>よくあった質問(84件)</b><br>
+            1. 校長先生の人柄に関する質問(趣味・好きな食べ物など)(25件)<br>
+            2. 地域の行事や名物に関する質問(18件)<br>
+            3. 校長先生の生徒時代の思い出に関する質問(12件)<br><br>
+            <b>全体の傾向</b><br>
+            「人柄」と「地域」に関する質問がバランスよく集まり、対話への参加は活発だった。
+          </div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden;margin-top:12px;">
+          <div style="padding:12px 16px;background:#F9FAFB;border-bottom:1px solid var(--border);">
+            <b style="font-size:13px;">💬 サマリーに指示(AIと対話)</b>
+            <div class="text-sub text-sm">「もっと短く」「カテゴリを件数順に並べて」など自然文で指示できます(※個人名や具体発言の引用はサマリーに含めません)</div>
+          </div>
+          <div style="padding:14px 16px;max-height:220px;overflow-y:auto;">
+            <div class="chat-bubble me" style="max-width:100%;"><div class="bubble-content">「魅力」のカテゴリ別に件数で整理して</div></div>
+            <div class="chat-bubble ai" style="max-width:100%;"><div class="bubble-content">
+              学校に関すること(22件) / 地域に関すること(26件) / 山口全体(15件)<br>
+              ─ 発言数はほぼ同程度で、「身近な魅力」への視点がそろったクラスでした。
+            </div></div>
+          </div>
+          <div class="flex-row" style="padding:10px 14px;border-top:1px solid var(--border);gap:6px;">
+            <input class="input" style="flex:1;" placeholder="例: カテゴリ別の件数でもっと短くまとめて" />
+            <button class="btn btn-primary btn-sm">送信</button>
+          </div>
+          <div class="flex-row" style="padding:0 14px 12px;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" style="font-size:11px;">もっと短く</button>
+            <button class="btn btn-secondary btn-sm" style="font-size:11px;">カテゴリ件数順に</button>
+            <button class="btn btn-secondary btn-sm" style="font-size:11px;">キーワードだけ抽出</button>
+          </div>
+        </div>
+
+        <div class="flex-row mt-4" style="padding-top:10px;border-top:1px solid var(--border);">
+          <button class="btn btn-secondary" onclick="alert('サマリーを保存しました(モック)')">💾 保存</button>
+          <div class="spacer"></div>
+          <button class="btn btn-success" onclick="if(confirm('📡 サマリーを生徒画面に投影します。\n(モック)生徒側の見え方を新しいタブでプレビューしますか?')){window.open('index.html#student-summary','_blank');}">📡 生徒に投影</button>
+        </div>
+      </div>
+
+      <!-- ポジショニングビュー(フェーズ4時表示) -->
+      <div id="classroom-view-positioning" style="padding:16px;display:none;">
+        <div class="card" style="background:#EEF2FF;border-left:4px solid var(--primary);padding:14px;">
+          <b>💭 ポジショニング: AI校長は「校長先生」と言えるのか?</b>
+          <div class="text-sub text-sm" style="margin-top:4px;">生徒28名がマップ上に意見を配置中</div>
+        </div>
+        <div class="positioning-stage-lg" style="margin-top:16px;">
+          <div class="positioning-line"></div>
+          <div class="positioning-label left">校長先生と言える</div>
+          <div class="positioning-label right">言えない</div>
+          <div class="marker" style="left:15%;">花子</div>
+          <div class="marker" style="left:22%;">一郎</div>
+          <div class="marker" style="left:28%;">健太</div>
+          <div class="marker" style="left:36%;">彩</div>
+          <div class="marker" style="left:45%;">美咲</div>
+          <div class="marker" style="left:52%;">翔</div>
+          <div class="marker" style="left:58%;">拓海</div>
+          <div class="marker" style="left:66%;">結衣</div>
+          <div class="marker" style="left:74%;">さくら</div>
+          <div class="marker" style="left:82%;">大輔</div>
+        </div>
+        <div class="grid-2 mt-4">
+          <div class="card">
+            <h4 style="font-size:13px;margin-bottom:6px;">分布の傾向</h4>
+            <div class="text-sm" style="line-height:1.7;">
+              左寄り(校長と言える): 12名<br>
+              中央: 8名<br>
+              右寄り(言えない): 8名
+            </div>
+          </div>
+          <div class="card">
+            <h4 style="font-size:13px;margin-bottom:6px;">次のアクション</h4>
+            <button class="btn btn-secondary btn-block btn-sm">🎯 移動が多かった生徒を抽出</button>
+            <button class="btn btn-secondary btn-block btn-sm mt-4">💬 両極の意見を聞く</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右: 先生ツールキット -->
+    <div class="classroom-pane-v31">
+      <!-- 微調整(揮発) -->
+      <div class="toolkit-section">
+        <div class="toolkit-head"><span class="emoji">🎛</span><span class="title">今回だけ微調整</span><span class="volatile-badge">授業終了で破棄</span></div>
+        <div class="text-sub text-sm" style="margin-bottom:6px;">進行中の会話に即時反映。正本は書き換えません。</div>
+        <textarea class="textarea" style="min-height:80px;font-size:12px;" placeholder="例: もう少し方言を強めに、もっと短めに答えてほしい…"></textarea>
+        <div class="flex-row mt-4" style="gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm">やさしく</button>
+          <button class="btn btn-secondary btn-sm">方言強め</button>
+          <button class="btn btn-secondary btn-sm">短めに</button>
+        </div>
+        <button class="btn btn-primary btn-block btn-sm mt-4">✓ 会話に反映</button>
+        <div class="text-center mt-4"><a href="#" onclick="event.preventDefault();alert('人物設定(正本)にも反映しました(モック)')" style="font-size:11px;">↑ 正本に昇格する</a></div>
+      </div>
+
+      <!-- 授業メモ -->
+      <div class="toolkit-section">
+        <div class="toolkit-head"><span class="emoji">📝</span><span class="title">先生メモ</span></div>
+        <div class="text-sub text-sm" style="margin-bottom:6px;">振り返りに引き継がれます</div>
+        <textarea class="textarea" style="min-height:80px;font-size:12px;" placeholder="気づいたことをメモ…">・鈴木くんの「地元のお祭り」の質問、本題の山口の魅力に繋げる</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 生徒ドリルダウン モーダル -->
+  <div class="modal-overlay" id="student-detail-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="flex-row">
+          <div class="avatar-circle" id="sd-avatar" style="width:40px;height:40px;font-size:16px;">田</div>
+          <div>
+            <div style="font-weight:700;font-size:16px;" id="sd-name">田中 花子</div>
+            <div class="text-sub text-sm" id="sd-stat">発言8件 ・ 参加 18分</div>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeStudentDetail()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px;">💬 この生徒の会話履歴</div>
+        <div class="card" style="padding:0;max-height:260px;overflow-y:auto;">
+          <div class="chat-log" style="padding:12px;">
+            <div class="chat-msg"><div class="who">花子 → AI</div>校長先生の好きな食べ物は?</div>
+            <div class="chat-msg" style="background:var(--primary-light);"><div class="who">AI → 花子</div>瓦そばが大好きなんよ。</div>
+            <div class="chat-msg"><div class="who">花子 → AI</div>この地域で自慢できるところはどこですか?</div>
+            <div class="chat-msg" style="background:var(--primary-light);"><div class="who">AI → 花子</div>湯田温泉の歴史と、人のあたたかさじゃねぇ。</div>
+          </div>
+        </div>
+        <div style="font-weight:700;font-size:13px;margin:14px 0 8px;">📝 この生徒の事前ワークシート</div>
+        <div class="card" style="background:#FEF3C7;padding:12px;font-size:13px;">
+          <b>あなたの考えた質問</b><br>
+          1. 校長先生の好きな食べ物は?<br>2. 地域の自慢できるところは?<br>3. 生徒時代の思い出<br><br>
+          <b>あなたの考えた意見</b><br>
+          学校の周りに湯田温泉があって、登下校中に匂いがするのが好き…
+        </div>
+        <div style="font-weight:700;font-size:13px;margin:14px 0 8px;">🔖 この生徒へのメモ</div>
+        <textarea class="textarea" style="font-size:12px;min-height:60px;" placeholder="気づきをメモ(振り返りに引き継ぎ)"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeStudentDetail()">閉じる</button>
+        <button class="btn btn-primary" onclick="alert('この生徒にAIから個別の問いかけを送りました(モック)');closeStudentDetail()">🎯 個別に問いかけを送る</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-3-H サマリー画面
+====================================================================== -->
+<section class="screen" id="teacher-summary">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">A中学校<small>先生ダッシュボード</small></div>
+      <div class="sidebar-section">メニュー</div>
+      <div class="sidebar-item" onclick="show('teacher-dashboard')"><span class="sidebar-icon">🏠</span>ホーム</div>
+      <div class="sidebar-item" onclick="show('teacher-model')"><span class="sidebar-icon">🤖</span>AI校長モデル</div>
+      <div class="sidebar-item" onclick="show('teacher-interview')"><span class="sidebar-icon">📝</span>事前インタビュー</div>
+      <div class="sidebar-item active" onclick="show('teacher-rooms')"><span class="sidebar-icon">📚</span>授業ルーム</div>
+      <div class="sidebar-item" onclick="show('teacher-test')"><span class="sidebar-icon">💬</span>会話テスト</div>
+      <div class="sidebar-section">管理者</div>
+      <div class="sidebar-item" onclick="show('admin-schools')"><span class="sidebar-icon">⬅</span>学校一覧へ戻る</div>
+      <div class="sidebar-item" onclick="show('login')"><span class="sidebar-icon">🚪</span>ログアウト</div>
+    </aside>
+    <main class="main">
+      <div class="breadcrumb"><a onclick="show('teacher-rooms')">授業ルーム</a> / 2年B組(終了) / 最終サマリー</div>
+      <div class="page-header">
+        <div>
+          <div class="page-title">最終サマリー<span class="badge badge-info" style="margin-left:10px;vertical-align:middle;font-size:10px;">授業後・共有用</span></div>
+          <div class="page-sub">2年B組 情報社会授業 / 参加 28人 ・ 授業中のサマリーを統合した最終版</div>
+        </div>
+        <div class="flex-row">
+          <button class="btn btn-secondary" onclick="show('teacher-review')">📈 授業後振り返りへ</button>
+          <button class="btn btn-secondary">📄 PDFエクスポート</button>
+          <button class="btn btn-secondary">📋 コピー</button>
+        </div>
+      </div>
+      <div class="card" style="background:#EEF2FF;border-left:4px solid var(--primary);margin-bottom:16px;">
+        <div class="text-sm"><b>📌 この画面について</b><br>授業中に作成したサマリー①②を統合した最終版です。授業進行中のサマリー作業は<b>授業運営画面</b>で行い、ここには最終版のみ表示されます。終了した授業ルームから開きます。</div>
+      </div>
+      <div class="tabs" style="margin-bottom:16px;">
+        <div class="tab active">アイスブレイク</div>
+        <div class="tab">本題トーク</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="card-title">AI生成サマリー</h3>
+          <div class="text-sm">
+            <b>質問数:</b> 84件(平均3.0件/人)<br>
+            <b>主なカテゴリ:</b> 校長先生の人柄 / 地域の行事・名物 / 生徒時代の思い出<br><br>
+            <b>全体の傾向</b>
+            <ul style="padding-left:18px;">
+              <li>地域の行事・名物への関心が最も高い(18件)</li>
+              <li>校長先生の人柄(趣味・食)に関する質問も多い</li>
+              <li>「わからない」とAIが答えた場面が3回 → ハルシネーション回避は機能</li>
+            </ul>
+            <div class="text-sub text-xs" style="margin-top:8px;font-size:11px;">※サマリーには個人名・個別発言の引用を含めない設計です(授業内容のネタバレ・誘導を避けるため)</div>
+          </div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;height:400px;">
+          <h3 class="card-title">対話型整理(プロンプトで指示)</h3>
+          <div style="flex:1;overflow-y:auto;padding:8px 0;">
+            <div class="chat-bubble me" style="max-width:100%;"><div class="bubble-content">多かった意見順にカテゴリで整理して</div></div>
+            <div class="chat-bubble ai" style="max-width:100%;"><div class="bubble-content">
+              1. 地域に関する発言(31件) — 温泉・お祭り・山に囲まれた環境 ほか<br>
+              2. 学校に関する発言(22件) — 図書室・地域と作る行事 ほか<br>
+              3. 山口全体に関する発言(18件) — 郷土料理・歴史・方言 ほか</div></div>
+            <div class="chat-bubble me" style="max-width:100%;"><div class="bubble-content">各カテゴリの代表的なキーワードを3つずつ</div></div>
+            <div class="chat-bubble ai" style="max-width:100%;"><div class="bubble-content">
+              学校: 図書室 / 行事 / 関係性<br>
+              地域: 温泉 / お祭り / 自然<br>
+              山口: 食 / 歴史 / 言葉<br>
+              ※個人名や生の発言引用はサマリー外に保持しています</div></div>
+          </div>
+          <div class="flex-row" style="padding-top:8px;border-top:1px solid var(--border);">
+            <input class="input" placeholder="例: キーワードを抽出して" />
+            <button class="btn btn-primary btn-sm">送信</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-3-I 授業後振り返り
+====================================================================== -->
+<section class="screen" id="teacher-review">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">A中学校<small>先生ダッシュボード</small></div>
+      <div class="sidebar-section">メニュー</div>
+      <div class="sidebar-item" onclick="show('teacher-dashboard')"><span class="sidebar-icon">🏠</span>ホーム</div>
+      <div class="sidebar-item" onclick="show('teacher-model')"><span class="sidebar-icon">🤖</span>AI校長モデル</div>
+      <div class="sidebar-item" onclick="show('teacher-interview')"><span class="sidebar-icon">📝</span>事前インタビュー</div>
+      <div class="sidebar-item active" onclick="show('teacher-rooms')"><span class="sidebar-icon">📚</span>授業ルーム</div>
+      <div class="sidebar-item" onclick="show('teacher-test')"><span class="sidebar-icon">💬</span>会話テスト</div>
+      <div class="sidebar-section">管理者</div>
+      <div class="sidebar-item" onclick="show('admin-schools')"><span class="sidebar-icon">⬅</span>学校一覧へ戻る</div>
+      <div class="sidebar-item" onclick="show('login')"><span class="sidebar-icon">🚪</span>ログアウト</div>
+    </aside>
+    <main class="main">
+      <div class="breadcrumb"><a onclick="show('teacher-rooms')">授業ルーム</a> / 3年A組(終了) / 振り返り</div>
+      <div class="page-header">
+        <div>
+          <div class="page-title">授業後振り返り</div>
+          <div class="page-sub">3年A組 情報社会授業 • 2026-04-15(終了)</div>
+        </div>
+        <div class="flex-row">
+          <button class="btn btn-secondary" onclick="show('teacher-summary')">📊 最終サマリーへ</button>
+          <button class="btn btn-secondary">会話履歴を全てDL</button>
+          <button class="btn btn-primary">最終サマリーをエクスポート</button>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">参加生徒</div><div class="stat-value">32</div></div>
+        <div class="stat-card"><div class="stat-label">総発話数</div><div class="stat-value">214</div></div>
+        <div class="stat-card"><div class="stat-label">ポジショニング移動回数</div><div class="stat-value">96</div></div>
+        <div class="stat-card"><div class="stat-label">所要時間</div><div class="stat-value">48分</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="card-title">最終サマリー(全フェーズ)</h3>
+          <div class="text-sm">
+            <b>アイスブレイク:</b> 校長の個人的エピソードと地域の伝統に関心が集中。<br><br>
+            <b>本題トーク:</b> 「学校や地域、山口の魅力」について、学校行事・自然環境・人のあたたかさが挙げられた。特に「地域の大人との関わり」が印象に残ったとの声。<br><br>
+            <b>ポジショニング:</b> 「校長先生と言えるか」について、授業前は右寄りが多かったが、授業後は中央〜左に集中。AIとの対話で「校長先生らしさ」への理解が深まった可能性。
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="card-title">校長先生・学校としてのフィードバック(任意)</h3>
+          <textarea class="textarea" style="min-height:180px;" placeholder="授業を受けて校長先生が気付いたこと、今後の学校運営に反映したい点など">生徒が地域や山口の魅力を自分の言葉で語っていたのが印象的だった。次の学校行事では「自分たちの町の魅力を発信する」取り組みを企画したい。</textarea>
+          <div class="flex-row mt-4">
+            <div class="spacer"></div>
+            <button class="btn btn-primary">フィードバックを保存</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="card-title">会話履歴(抜粋)</h3>
+        <div class="chat-msg"><div class="who">田中 花子(アイスブレイク)</div>校長先生の好きな食べ物は?</div>
+        <div class="chat-msg" style="background:var(--primary-light);"><div class="who">AI</div>瓦そばが大好きなんよ…</div>
+        <div class="chat-msg"><div class="who">鈴木 一郎(本題トーク)</div>学校の良いところは地域との距離が近いところだと思います。</div>
+        <button class="btn btn-ghost btn-block mt-4">すべての履歴を見る →</button>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-4-A インタビュー開始
+====================================================================== -->
+<section class="screen" id="interview-start">
+  <div class="interview-wrap">
+    <div class="text-center">
+      <div class="avatar-circle" style="margin:0 auto 16px;width:80px;height:80px;font-size:32px;">🎤</div>
+      <h1 style="font-size:26px;">「校長AI」事前インタビュー</h1>
+      <div class="text-sub">A中学校 様<br>所要時間:<span class="ver-honnin">約20分</span><span class="ver-dairi" style="display:none;">約15分</span></div>
+    </div>
+
+    <!-- Ver切替(モック用) -->
+    <div class="card" style="background:#FEF3C7;padding:12px 16px;border-left:4px solid var(--warning);">
+      <div class="text-sm" style="margin-bottom:8px;"><b>🎚 (モック切替) インタビューの種別</b> ※実際は管理者が発行するURLにより自動決定されます</div>
+      <div class="ver-toggle" style="display:flex;gap:8px;">
+        <button class="btn btn-secondary btn-sm active" onclick="selectVer(this,'honnin')" style="flex:1;">校長本人Ver(声・顔写真あり)</button>
+        <button class="btn btn-secondary btn-sm" onclick="selectVer(this,'dairi')" style="flex:1;">校長代理Ver(声・顔写真なし)</button>
+      </div>
+    </div>
+
+    <div class="card mt-8">
+      <h3 class="card-title">インタビューの目的</h3>
+      <p class="text-sm">
+        <span class="ver-honnin">校長先生の人格や話し方を再現したAIクローンを作成するため、「校長AI」授業前の事前インタビューをさせていただきます。</span>
+        <span class="ver-dairi" style="display:none;">校長先生の代理として動作するAIキャラクター(マスコット型)を作成するため、学校・地域に関する情報を中心にお伺いします。校長先生ご本人でなくても、教頭先生・学校事務の方など担当の先生がご回答いただけます。</span>
+      </p>
+      <div class="card" style="background:var(--primary-light);padding:12px 14px;margin-top:12px;">
+        <div class="text-sm"><b>📌 インタビューの扱いについて</b><br>
+          <span class="ver-honnin">インタビューを録音・テキスト化したものをAIが学習します。人格を似せて、合成音声で声を似せたAIクローンを作成させていただきます。</span>
+          <span class="ver-dairi" style="display:none;">回答内容と添付いただいた校章・マスコット画像をもとに、合成音声を使用したAIキャラクターを作成します。校長先生ご自身の声・顔は使用しません。</span>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="flex-row">
+        <span class="badge badge-info ver-badge">校長本人Ver</span>
+        <span class="text-sm text-sub">1校につき原則1回・<span class="ver-honnin">校長先生お一人</span><span class="ver-dairi" style="display:none;">担当の先生</span>にお答えいただきます</span>
+      </div>
+      <div class="mt-4">
+        <h4 style="font-size:14px;">インタビューの流れ</h4>
+        <ol class="text-sm" style="padding-left:20px;">
+          <li>質問アンケート(<span class="ver-honnin">15分</span><span class="ver-dairi" style="display:none;">12分</span>)
+            <ul style="margin-top:4px;">
+              <li class="ver-honnin">校長先生ご自身のこと</li>
+              <li>学校のこと</li>
+              <li>地域のこと</li>
+              <li>AI校長の話し方</li>
+            </ul>
+          </li>
+          <li class="ver-honnin">お声の録音(3分)</li>
+          <li>
+            <span class="ver-honnin">お顔の写真アップロード(1分)</span>
+            <span class="ver-dairi" style="display:none;">校章・マスコット画像のアップロード(1分)</span>
+          </li>
+          <li>話し方のテイスト設定(3分)</li>
+        </ol>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" onclick="show('interview-survey')">開始する →</button>
+    <div class="text-center text-sm text-sub mt-4">※回答内容は厳重に管理し、AI校長モデル以外の用途には使用しません<br>※質問内容は変更する可能性がございます</div>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-4-B アンケート(4セクション構成)
+====================================================================== -->
+<section class="screen" id="interview-survey">
+  <div class="interview-wrap" style="max-width:720px;">
+    <div class="progress-bar"><div class="progress-fill" style="width:25%"></div></div>
+    <div class="step-badge">ステップ 1/4 • 質問アンケート</div>
+    <h2 style="font-size:22px;">質問アンケート</h2>
+    <p class="text-sm text-sub">すべての項目に答えていただく必要はありません。自由にお答えいただけるところだけで大丈夫です。</p>
+
+    <!-- AI下書きバナー -->
+    <div class="card" style="background:#EEF2FF;border-left:4px solid var(--primary);padding:14px 16px;">
+      <div class="flex-row">
+        <span style="font-size:22px;">✨</span>
+        <div class="text-sm" style="flex:1;">
+          <b>管理者がAI下書きを作成済みです</b><br>
+          一部の項目は学校HP・学校だより等から自動記入されています。内容をご確認のうえ、修正・加筆をお願いいたします。
+        </div>
+      </div>
+      <div class="flex-row mt-4" style="gap:8px;flex-wrap:wrap;font-size:12px;">
+        <span class="badge badge-success">出典あり</span>
+        <span class="badge badge-warning">推測 (要確認)</span>
+        <span class="badge badge-gray">空欄 (未記入)</span>
+      </div>
+    </div>
+
+    <!-- セクションナビ(アンカー) -->
+    <div class="card" style="position:sticky;top:10px;z-index:10;padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="#sec-principal" class="tag ver-honnin" style="cursor:pointer;">① 校長先生ご自身</a>
+      <a href="#sec-school" class="tag" style="cursor:pointer;">② 学校のこと</a>
+      <a href="#sec-region" class="tag" style="cursor:pointer;">③ 地域のこと</a>
+      <a href="#sec-ai" class="tag" style="cursor:pointer;">④ AI校長の話し方</a>
+    </div>
+
+    <!-- セクション1: 校長先生ご自身のこと(本人Verのみ) -->
+    <div class="card ver-honnin" id="sec-principal" style="border-left:4px solid var(--primary);">
+      <h3 class="card-title" style="color:var(--primary);">① 校長先生ご自身のこと</h3>
+      <div class="text-sm text-sub" style="margin-bottom:12px;">基本プロフィール、学生時代、専門分野、趣味、理念などについてお聞かせください。</div>
+
+      <div class="grid-2">
+        <div class="field"><label class="label">お名前 <span class="badge badge-success" style="font-size:10px;padding:1px 6px;">✨出典あり</span></label>
+          <input class="input" value="例)山田 太郎" style="background:#F0FDF4;" /></div>
+        <div class="field"><label class="label">ご年齢 <span class="badge badge-gray" style="font-size:10px;padding:1px 6px;">空欄</span></label>
+          <input class="input" placeholder="例: 58歳" /></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label class="label">教員をされている年数</label>
+          <select class="select"><option>〜10年</option><option>10〜20年</option><option selected>20〜30年</option><option>30年以上</option></select></div>
+        <div class="field"><label class="label">ご出身</label>
+          <input class="input" placeholder="例: 山口県山口市" /></div>
+      </div>
+      <div class="field"><label class="label">これまでのご経歴(教員・管理職としてのご経験など)</label>
+        <textarea class="textarea" placeholder="例: 国語科教員として勤務後、教頭を経て校長に就任"></textarea></div>
+      <div class="field"><label class="label">校長先生になられた理由</label>
+        <textarea class="textarea"></textarea></div>
+
+      <div class="divider"></div>
+      <h4 style="font-size:14px;margin-bottom:10px;">学生時代について</h4>
+      <div class="field"><label class="label">学生時代はどんな子どもでしたか?(小中学生時代の思い出)</label>
+        <textarea class="textarea"></textarea></div>
+      <div class="grid-2">
+        <div class="field"><label class="label">部活動</label>
+          <input class="input" placeholder="例: 陸上部" /></div>
+        <div class="field"><label class="label">得意科目</label>
+          <input class="input" placeholder="例: 国語" /></div>
+      </div>
+
+      <div class="divider"></div>
+      <h4 style="font-size:14px;margin-bottom:10px;">専門分野・得意分野</h4>
+      <div class="field"><label class="label">専門分野は何ですか?</label>
+        <input class="input" placeholder="例: 国語科(古典)" /></div>
+      <div class="field"><label class="label">専門分野を生かした自慢のエピソードがあれば</label>
+        <textarea class="textarea" placeholder="例: 数学の先生で、数学オリンピック出場者を育てた"></textarea></div>
+      <div class="field"><label class="label">「これだけは負けない!」と自信を持って言えること</label>
+        <textarea class="textarea" placeholder="例: 早起きなら負けない、実はリフティングが得意 など"></textarea></div>
+
+      <div class="divider"></div>
+      <h4 style="font-size:14px;margin-bottom:10px;">趣味・特技</h4>
+      <div class="field"><label class="label">趣味や特技は?</label>
+        <textarea class="textarea"></textarea></div>
+      <div class="field"><label class="label">ちょっと変わった趣味や特技があれば</label>
+        <textarea class="textarea" placeholder="例: 利き給食、ゲームが得意 など"></textarea></div>
+
+      <div class="divider"></div>
+      <h4 style="font-size:14px;margin-bottom:10px;">理念・好きなもの</h4>
+      <div class="field"><label class="label">好きな本・最近読んだ本や漫画で面白かったもの</label>
+        <textarea class="textarea"></textarea></div>
+      <div class="field"><label class="label">尊敬する偉人や有名人</label>
+        <textarea class="textarea"></textarea></div>
+      <div class="field"><label class="label">いつも心掛けていること</label>
+        <textarea class="textarea"></textarea></div>
+      <div class="field"><label class="label">面白い雑学・豆知識があれば</label>
+        <textarea class="textarea" placeholder="例: 実は校長室には隠し扉がある、校庭に埋まっているタイムカプセルの話など"></textarea></div>
+    </div>
+
+    <!-- セクション2: 学校のこと -->
+    <div class="card" id="sec-school" style="border-left:4px solid var(--success);">
+      <h3 class="card-title" style="color:var(--success);">② 学校のこと</h3>
+      <div class="text-sm text-sub" style="margin-bottom:12px;">学校運営の理念、学校の特色、授業を受ける子どもたちについてお聞かせください。</div>
+
+      <div class="field"><label class="label">学校運営における理念や方針 <span class="badge badge-warning" style="font-size:10px;padding:1px 6px;">推測</span></label>
+        <textarea class="textarea" style="background:#FFFBEB;">「自律・協働・挑戦」を校訓として、生徒一人ひとりの個性を大切にする教育を行っています。(校訓から推定)</textarea></div>
+      <div class="field"><label class="label">校訓・学校のモットー <span class="badge badge-success" style="font-size:10px;padding:1px 6px;">✨出典あり</span></label>
+        <input class="input" value="自律・協働・挑戦" style="background:#F0FDF4;" /></div>
+      <div class="field"><label class="label">特に力を入れている教育活動や取り組み <span class="badge badge-success" style="font-size:10px;padding:1px 6px;">✨出典あり</span></label>
+        <textarea class="textarea" style="background:#F0FDF4;">山口の自然と歴史を生かした地域連携教育。地域の方を招いた授業、地域行事への参加を通じて、ふるさとへの愛着を育んでいます。</textarea></div>
+      <div class="field"><label class="label">学校ならではの体験・特色ある取り組み <span class="badge badge-gray" style="font-size:10px;padding:1px 6px;">空欄</span></label>
+        <textarea class="textarea" placeholder="他校にはない、この学校ならではの体験"></textarea></div>
+      <div class="field"><label class="label">校則に対する考え方</label>
+        <textarea class="textarea"></textarea></div>
+
+      <div class="divider"></div>
+      <h4 style="font-size:14px;margin-bottom:10px;">今回授業を受ける子どもたちについて</h4>
+      <div class="field"><label class="label">子どもたちの特色(どんなクラス・学年ですか?)</label>
+        <textarea class="textarea"></textarea></div>
+      <div class="field"><label class="label">もっと良くなるポイント</label>
+        <textarea class="textarea"></textarea></div>
+      <div class="field"><label class="label">学校で変えたいポイント・悩み・困っていること</label>
+        <textarea class="textarea"></textarea></div>
+    </div>
+
+    <!-- セクション3: 地域のこと -->
+    <div class="card" id="sec-region" style="border-left:4px solid var(--warning);">
+      <h3 class="card-title" style="color:#B45309;">③ 地域のこと</h3>
+      <div class="text-sm text-sub" style="margin-bottom:8px;">この学校の地域、そして山口の魅力についてお聞かせください。</div>
+      <div class="hint" style="background:#FEF3C7;padding:8px 12px;border-radius:var(--radius);margin-bottom:12px;font-size:12px;">
+        📌 本セクションの質問は、授業で扱うテーマ(学校の魅力・地域の魅力・山口の魅力)に基づいて自動生成されています
+      </div>
+
+      <div class="field"><label class="label">この学校・この地域の魅力は何だと思いますか? <span class="badge badge-success" style="font-size:10px;padding:1px 6px;">✨出典あり</span></label>
+        <textarea class="textarea" style="background:#F0FDF4;">湯田温泉を中心に、古くから湯治・文学・交流の文化が根付いている地域です。学校のすぐ近くに温泉街や中原中也ゆかりの場所があり、日常の中に歴史と文化が息づいています。</textarea></div>
+      <div class="field"><label class="label">山口の魅力は何だと思いますか? <span class="badge badge-success" style="font-size:10px;padding:1px 6px;">✨出典あり</span></label>
+        <textarea class="textarea" style="background:#F0FDF4;">歴史・自然・食文化(ふぐ・瓦そば・地酒)の豊かさ。城下町の風情と、瀬戸内・日本海両方の海の恵みがある稀有な土地です。</textarea></div>
+      <div class="field"><label class="label">地域の人との関わりについて <span class="badge badge-gray" style="font-size:10px;padding:1px 6px;">空欄</span></label>
+        <textarea class="textarea" placeholder="地域の方が学校と関わる機会、逆に子どもたちが地域に出る機会など"></textarea></div>
+    </div>
+
+    <!-- セクション4: AI校長の話し方 -->
+    <div class="card" id="sec-ai" style="border-left:4px solid #8B5CF6;">
+      <h3 class="card-title" style="color:#7C3AED;">④ AI校長の話し方</h3>
+      <div class="text-sm text-sub" style="margin-bottom:12px;">AIが子どもたちと話すときの雰囲気や話題についてお聞かせください。</div>
+
+      <div class="field"><label class="label">子どもたちとどんな話をしたいですか?</label>
+        <textarea class="textarea" placeholder="例: 将来の夢について語り合いたい"></textarea></div>
+      <div class="field"><label class="label">どのような雰囲気で子どもたちと会話したいですか? <span class="badge badge-warning" style="font-size:10px;padding:1px 6px;">推測</span></label>
+        <textarea class="textarea" style="background:#FFFBEB;">やさしく、親しみやすく。(校訓「自律・協働・挑戦」の雰囲気から推定。ヒアリング推奨)</textarea></div>
+      <div class="field"><label class="label">よく使う言葉や口癖 <span class="badge badge-gray" style="font-size:10px;padding:1px 6px;">空欄</span></label>
+        <input class="input" placeholder="例: そうだねぇ、なるほど、〜じゃけぇ" /></div>
+      <div class="field"><label class="label">よく生徒からされる質問と、その答え</label>
+        <textarea class="textarea" placeholder="例: 「校長先生ってなんの仕事してるの?」→ ..."></textarea></div>
+      <div class="field"><label class="label">子どもたちの悩みや疑問について、どんなことを語ってみたいですか?</label>
+        <textarea class="textarea" placeholder="例: 進路、友人関係、将来の不安などについてアドバイスしたい"></textarea></div>
+      <div class="field"><label class="label">教師としての振る舞いで参考にしている人や考えはありますか?</label>
+        <textarea class="textarea"></textarea></div>
+    </div>
+
+    <div class="flex-row" style="margin-top:20px;">
+      <button class="btn btn-secondary" onclick="show('interview-start')">← 戻る</button>
+      <div class="spacer"></div>
+      <button class="btn btn-secondary">一時保存</button>
+      <button class="btn btn-primary" onclick="show('interview-voice')">次へ(声の録音) →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-4-C 声の録音
+====================================================================== -->
+<section class="screen" id="interview-voice">
+  <div class="interview-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>
+    <div class="step-badge">ステップ 2/4 • 声の録音</div>
+
+    <!-- 代理Verの場合のスキップ表示 -->
+    <div class="card ver-dairi" style="display:none;background:#FEF3C7;border-left:4px solid var(--warning);text-align:center;padding:40px 20px;">
+      <div style="font-size:42px;margin-bottom:8px;">⏭</div>
+      <h2 style="font-size:20px;margin-bottom:8px;">このステップは不要です</h2>
+      <p class="text-sm text-sub">校長代理Verでは合成音声を使用するため、声の録音は行いません。<br>「次へ」を押して、画像アップロードへお進みください。</p>
+    </div>
+
+    <!-- 本人Verのみ表示 -->
+    <div class="ver-honnin">
+      <h2 style="font-size:20px;">お声を録音してください</h2>
+      <div class="card">
+        <div class="text-sm text-sub">以下の文章を、普段のお声で読み上げてください。</div>
+        <div class="card" style="background:var(--primary-light);margin-top:12px;font-size:15px;line-height:1.8;">
+          「こんにちは。A中学校の例)山田です。今日はみなさんと、学校や地域のことについて話せるのを楽しみにしています。どんなことでも気軽に聞いてくださいね。」
+        </div>
+        <div class="text-center mt-8">
+          <button class="btn btn-primary btn-lg" style="border-radius:999px;width:140px;height:140px;font-size:18px;" onclick="this.textContent=this.textContent==='● 録音'?'⏹ 停止':'● 録音'">● 録音</button>
+          <div class="text-sm text-sub mt-4">マイクへのアクセスを許可してください</div>
+        </div>
+        <div class="divider"></div>
+        <div class="flex-row">
+          <button class="btn btn-secondary">▶ 再生</button>
+          <button class="btn btn-ghost">↻ 録り直す</button>
+          <div class="spacer"></div>
+          <span class="badge badge-success">録音完了 / 15秒</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex-row">
+      <button class="btn btn-secondary" onclick="show('interview-survey')">← 戻る</button>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" onclick="show('interview-photo')">次へ →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-4-D 写真撮影・アップロード
+====================================================================== -->
+<section class="screen" id="interview-photo">
+  <div class="interview-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:75%"></div></div>
+    <div class="step-badge">ステップ 3/4 • <span class="ver-honnin">写真</span><span class="ver-dairi" style="display:none;">アイコン画像</span></div>
+    <h2 style="font-size:20px;">
+      <span class="ver-honnin">顔写真をアップロード</span>
+      <span class="ver-dairi" style="display:none;">校章・マスコット画像をアップロード</span>
+    </h2>
+    <div class="card">
+      <div class="text-sm text-sub">
+        <span class="ver-honnin">AIのアイコンとして使用します。正面を向いた明るい写真がおすすめです。</span>
+        <span class="ver-dairi" style="display:none;">AIキャラクターのアイコンとして使用します。学校の校章、マスコット、シンボルキャラクター等の画像をご用意ください。</span>
+      </div>
+      <div class="text-center mt-8">
+        <div style="width:200px;height:200px;border-radius:50%;background:var(--primary-light);margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:60px;color:var(--primary);">
+          <span class="ver-honnin">👤</span><span class="ver-dairi" style="display:none;">🏫</span>
+        </div>
+      </div>
+      <div class="flex-row mt-8" style="justify-content:center;">
+        <button class="btn btn-primary"><span class="ver-honnin">📷 カメラで撮影</span><span class="ver-dairi" style="display:none;">📷 撮影する</span></button>
+        <button class="btn btn-secondary">📁 ファイルを選ぶ</button>
+      </div>
+    </div>
+    <div class="flex-row">
+      <button class="btn btn-secondary" onclick="show('interview-voice')">← 戻る</button>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" onclick="show('interview-taste')">次へ →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-4-E テイスト設定
+====================================================================== -->
+<section class="screen" id="interview-taste">
+  <div class="interview-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:95%"></div></div>
+    <div class="step-badge">ステップ 4/4 • テイスト設定</div>
+    <h2 style="font-size:20px;">AI校長の話し方</h2>
+    <div class="card">
+      <div class="field"><label class="label">やさしさ</label>
+        <input type="range" min="1" max="5" value="4" style="width:100%;" />
+        <div class="flex-between text-sm text-sub"><span>厳しめ</span><span>やさしい</span></div>
+      </div>
+      <div class="field"><label class="label">フォーマル度</label>
+        <input type="range" min="1" max="5" value="3" style="width:100%;" />
+        <div class="flex-between text-sm text-sub"><span>くだけた</span><span>フォーマル</span></div>
+      </div>
+      <div class="field"><label class="label">口癖(あれば)</label>
+        <input class="input" placeholder="例: そうだねぇ、なるほど" /></div>
+      <div class="field"><label class="label">方言(あれば)</label>
+        <input class="input" placeholder="例: 山口弁、関西弁" /></div>
+      <div class="field"><label class="label">その他、AI校長に伝えておきたいこと</label>
+        <textarea class="textarea" placeholder="例: 生徒との距離感、好きな話題、避けてほしい話題など"></textarea></div>
+    </div>
+    <div class="flex-row">
+      <button class="btn btn-secondary" onclick="show('interview-photo')">← 戻る</button>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" onclick="show('interview-done')">回答を送信</button>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-4-F 完了
+====================================================================== -->
+<section class="screen" id="interview-done">
+  <div class="interview-wrap text-center">
+    <div class="avatar-circle" style="margin:60px auto 16px;width:100px;height:100px;font-size:48px;background:#D1FAE5;color:var(--success);">✓</div>
+    <h1 style="font-size:26px;">ご回答ありがとうございました</h1>
+    <div class="text-sub mt-4">回答内容をもとに、AI校長モデルを作成いたします。<br>完成までに数日かかる場合があります。</div>
+    <div class="card mt-8">
+      <h3 class="card-title">次のステップ</h3>
+      <div class="text-sm text-sub" style="text-align:left;">
+        1. 管理者が回答内容を確認します<br>
+        2. AI校長モデルが生成されます<br>
+        3. 担当の先生に完成通知が届きます<br>
+        4. 授業前に会話テストで動作を確認いただけます
+      </div>
+    </div>
+    <button class="btn btn-secondary" onclick="show('login')">閉じる</button>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-5-A 名前入力(生徒) - PC向け
+====================================================================== -->
+<section class="screen" id="student-name">
+  <div class="student-page">
+    <div class="student-topbar">
+      <div class="student-topbar-side-l"></div>
+      <div class="student-topbar-center">
+        <div class="avatar-lg">山</div>
+        <div>
+          <div class="student-topbar-title">例)山田 太郎 校長</div>
+          <div class="student-topbar-sub">A中学校 / <a href="#" onclick="event.preventDefault()">詳細を表示</a></div>
+        </div>
+      </div>
+      <div class="student-topbar-side-r">
+        <span class="badge badge-info">授業開始前</span>
+      </div>
+    </div>
+    <div class="student-content student-content-narrow">
+      <div class="card" style="padding:40px;">
+        <div class="text-center" style="margin-bottom:24px;">
+          <div style="font-size:48px;margin-bottom:8px;">👋</div>
+          <h1 style="font-size:24px;margin-bottom:6px;">こんにちは!</h1>
+          <p class="text-sub">授業に参加する前に、お名前を教えてください。</p>
+        </div>
+        <div class="field"><label class="label">お名前</label>
+          <input class="input" placeholder="例: 田中 花子" style="padding:12px 14px;font-size:15px;" /></div>
+        <button class="btn btn-primary btn-lg btn-block mt-4" onclick="show('student-wait')">参加する</button>
+        <div class="text-sm text-sub text-center mt-4">※ヘッドセットを接続してお待ちください</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-5-B 待機 - PC向け
+====================================================================== -->
+<section class="screen" id="student-wait">
+  <div class="student-page">
+    <div class="student-topbar">
+      <div class="student-topbar-side-l"></div>
+      <div class="student-topbar-center">
+        <div class="avatar-lg">山</div>
+        <div>
+          <div class="student-topbar-title">例)山田 太郎 校長</div>
+          <div class="student-topbar-sub">A中学校</div>
+        </div>
+      </div>
+      <div class="student-topbar-side-r">
+        <span class="badge badge-success">✓ 接続中</span>
+      </div>
+    </div>
+    <div class="student-content student-content-narrow">
+      <div class="card text-center" style="padding:60px 40px;">
+        <div style="font-size:72px;margin-bottom:24px;animation:pulse 1.5s infinite;">⏳</div>
+        <h2 style="font-size:22px;">先生の指示を待っています</h2>
+        <p class="text-sub">自動的に画面が切り替わります。</p>
+        <div class="divider"></div>
+        <div style="text-align:center;">
+          <div class="text-sub text-sm">あなた</div>
+          <div style="font-weight:700;font-size:18px;">田中 花子</div>
+        </div>
+        <div class="flex-row mt-8" style="justify-content:center;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="show('student-chat-icebreak')">(デモ)アイスブレイクへ</button>
+          <button class="btn btn-secondary btn-sm" onclick="show('student-chat-talk')">(デモ)本題トークへ</button>
+          <button class="btn btn-secondary btn-sm" onclick="show('student-summary')">(デモ)サマリー視聴へ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-5-C 会話画面 - PC向け2カラム
+====================================================================== -->
+<!-- 7-5-C-① アイスブレイク: 生徒が質問する時間 -->
+<section class="screen" id="student-chat-icebreak">
+  <div class="student-page">
+    <div class="student-topbar">
+      <div class="student-topbar-side-l"></div>
+      <div class="student-topbar-center">
+        <div class="avatar-lg">山</div>
+        <div>
+          <div class="student-topbar-title">例)山田 太郎 校長</div>
+          <div class="student-topbar-sub"><a href="#" onclick="event.preventDefault()">詳細を表示</a></div>
+        </div>
+      </div>
+      <div class="student-topbar-side-r">
+        <button class="student-end-btn" onclick="show('student-end')">体験終了</button>
+      </div>
+    </div>
+    <div class="student-theme-bar">💭 <b>いまの時間:</b> AI校長に質問してみよう</div>
+    <div class="student-chat-full">
+      <div class="student-chat-scroll">
+        <div class="chat-bubble ai"><div class="bubble-label">🎙 AI校長</div><div class="bubble-content">こんにちは、田中さん!今日はよろしくお願いしますね。わしに気になること、なんでも聞いてええよ。</div></div>
+        <div class="chat-bubble me"><div class="bubble-label">あなた</div><div class="bubble-content">校長先生の好きな食べ物は何ですか?</div></div>
+        <div class="chat-bubble ai"><div class="bubble-label">🎙 AI校長</div><div class="bubble-content">瓦そばが大好きなんよ。山口の郷土料理でな、熱した瓦の上に茶そばをのせて食べるんじゃけぇ、見た目もご馳走じゃろ。</div></div>
+        <div class="chat-bubble me"><div class="bubble-label">あなた</div><div class="bubble-content">生徒だった頃の思い出を教えてください</div></div>
+        <div class="chat-bubble ai"><div class="bubble-label">🎙 AI校長</div><div class="bubble-content">わしが中学生の頃はな、陸上部で長距離をやっとったんよ。山口の山を毎日走っとってね、登下校だけで足が鍛えられたもんじゃ。</div></div>
+      </div>
+      <div class="ptt-bar">
+        <button class="ptt-btn" onmousedown="this.classList.add('talking');this.textContent='🎤 話し中…'" onmouseup="this.classList.remove('talking');this.textContent='🎤 押して話す'" ontouchstart="this.classList.add('talking');this.textContent='🎤 話し中…'" ontouchend="this.classList.remove('talking');this.textContent='🎤 押して話す'">🎤 押して話す</button>
+      </div>
+    </div>
+    <button class="student-memo-toggle" onclick="document.getElementById('student-memo-ib').classList.toggle('open')">📋 メモを閉じる</button>
+    <div class="student-memo-panel open" id="student-memo-ib">
+      <div style="font-weight:700;font-size:14px;margin-bottom:10px;">📋 あなたのメモ(事前ワークシート)</div>
+      <div style="font-size:13px;color:var(--text-sub);margin-bottom:6px;">あなたの考えた質問</div>
+      <div class="text-sm" style="background:#FEF3C7;padding:10px 12px;border-radius:var(--radius);line-height:1.7;">
+        1. 校長先生の好きな食べ物は?<br>
+        2. 地域の自慢できるところは?<br>
+        3. 生徒時代の思い出
+      </div>
+      <div class="text-sub text-sm" style="margin-top:12px;">※いまは質問する時間です。意見は次の「本題トーク」で使います。</div>
+    </div>
+  </div>
+</section>
+
+<!-- 7-5-C-② 本題トーク: AIから生徒へ問いかけ -->
+<section class="screen" id="student-chat-talk">
+  <div class="student-page">
+    <div class="student-topbar">
+      <div class="student-topbar-side-l"></div>
+      <div class="student-topbar-center">
+        <div class="avatar-lg">山</div>
+        <div>
+          <div class="student-topbar-title">例)山田 太郎 校長</div>
+          <div class="student-topbar-sub"><a href="#" onclick="event.preventDefault()">詳細を表示</a></div>
+        </div>
+      </div>
+      <div class="student-topbar-side-r">
+        <button class="student-end-btn" onclick="show('student-end')">体験終了</button>
+      </div>
+    </div>
+    <div class="student-theme-bar" style="background:#ECFDF5;color:#065F46;">🗣 <b>いまの時間:</b> 学校や地域、山口の魅力について話してみよう</div>
+    <div class="student-chat-full">
+      <div class="student-chat-scroll">
+        <div class="chat-bubble ai"><div class="bubble-label">🎙 AI校長</div><div class="bubble-content">さてさて、田中さん。ここからはわしから聞いてみたいんじゃ。あなたが思う、この学校や地域、山口の「ここがええな」って思うところ、教えてくれんかね?</div></div>
+        <div class="chat-bubble me"><div class="bubble-label">あなた</div><div class="bubble-content">学校の周りに湯田温泉があって、登下校中に温泉の匂いがするのが好きです。</div></div>
+        <div class="chat-bubble ai"><div class="bubble-label">🎙 AI校長</div><div class="bubble-content">ええとこに気づいとるね!湯田温泉はうちの町の宝じゃけぇ。匂いで季節や天気も感じられたりするじゃろ。他にはどうかな?</div></div>
+        <div class="chat-bubble me"><div class="bubble-label">あなた</div><div class="bubble-content">図書室が新しくなって、窓から山が見えるのがいいです。</div></div>
+        <div class="chat-bubble ai"><div class="bubble-label">🎙 AI校長</div><div class="bubble-content">そうじゃろそうじゃろ。勉強に疲れたときに山を見ると、ほっとするんよ。山口は「自然が近い」ことが、ひとつの魅力じゃね。</div></div>
+      </div>
+      <div class="ptt-bar">
+        <button class="ptt-btn" onmousedown="this.classList.add('talking');this.textContent='🎤 話し中…'" onmouseup="this.classList.remove('talking');this.textContent='🎤 押して話す'" ontouchstart="this.classList.add('talking');this.textContent='🎤 話し中…'" ontouchend="this.classList.remove('talking');this.textContent='🎤 押して話す'">🎤 押して話す</button>
+      </div>
+    </div>
+    <button class="student-memo-toggle" onclick="document.getElementById('student-memo-tk').classList.toggle('open')">📋 メモを閉じる</button>
+    <div class="student-memo-panel open" id="student-memo-tk">
+      <div style="font-weight:700;font-size:14px;margin-bottom:10px;">📋 あなたのメモ(事前ワークシート)</div>
+      <div style="font-size:13px;color:var(--text-sub);margin-bottom:6px;">あなたの考えた意見(学校や地域、山口の魅力について)</div>
+      <div class="text-sm" style="background:#ECFDF5;padding:10px 12px;border-radius:var(--radius);line-height:1.7;">
+        学校の周りに湯田温泉があって、登下校中に匂いがするのが好き。図書室の窓から山が見えるのもいい。地域の人が学校に来てくれるイベントも、他の学校にはないと思うので自慢したい。
+      </div>
+      <div class="text-sub text-sm" style="margin-top:12px;">※いまは校長と意見を話す時間です。聞きたいことは前の「アイスブレイク」で使いました。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-5-G サマリー視聴 - 先生が投影したサマリーを生徒が見る画面
+====================================================================== -->
+<section class="screen" id="student-summary">
+  <div class="student-page">
+    <div class="student-topbar">
+      <div class="student-topbar-side-l"></div>
+      <div class="student-topbar-center">
+        <div class="avatar-lg">山</div>
+        <div>
+          <div class="student-topbar-title">例)山田 太郎 校長</div>
+          <div class="student-topbar-sub">A中学校</div>
+        </div>
+      </div>
+      <div class="student-topbar-side-r">
+        <button class="student-end-btn" onclick="show('student-end')">体験終了</button>
+      </div>
+    </div>
+    <div class="student-theme-bar" style="background:#EEF2FF;color:#3730A3;">
+      📊 <b>いまの時間:</b> <span id="student-summary-theme-label">みんなの質問を先生がまとめています</span> — 先生のスクリーンと同じ内容が映っています
+    </div>
+    <div class="student-content" style="max-width:900px;margin:0 auto;padding:18px 22px 40px;">
+
+      <!-- 投影中カード -->
+      <div class="card" style="padding:0;overflow:hidden;border:2px solid var(--primary);box-shadow:0 8px 28px rgba(79,70,229,.18);">
+        <div style="padding:12px 18px;background:linear-gradient(135deg,var(--primary),#7C3AED);color:#fff;display:flex;justify-content:space-between;align-items:center;">
+          <b style="font-size:15px;" id="student-summary-title">📊 アイスブレイクのサマリー</b>
+          <span style="background:rgba(255,255,255,.22);padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;">🔴 先生が投影中</span>
+        </div>
+        <div style="padding:20px 24px;line-height:1.95;font-size:15px;background:#fff;" id="student-summary-body">
+          <b>よくあった質問(84件)</b><br>
+          1. 校長先生の人柄に関する質問(趣味・好きな食べ物など)(25件)<br>
+          2. 地域の行事や名物に関する質問(18件)<br>
+          3. 校長先生の生徒時代の思い出に関する質問(12件)<br><br>
+          <b>全体の傾向</b><br>
+          「人柄」と「地域」に関する質問がバランスよく集まり、クラス全体で対話への参加が活発だった。
+        </div>
+      </div>
+
+      <!-- 先生とAIの対話 -->
+      <div class="card" style="margin-top:16px;padding:0;overflow:hidden;">
+        <div style="padding:10px 16px;background:#F9FAFB;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <b style="font-size:13px;">💬 先生とAIがまとめを整えている様子</b>
+          <span class="text-sub text-sm" style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;background:var(--danger);border-radius:50%;animation:pulse 1.5s infinite;"></span>リアルタイム表示</span>
+        </div>
+        <div style="padding:14px 18px;max-height:260px;overflow-y:auto;" id="student-summary-chat">
+          <div class="chat-bubble me" style="max-width:100%;"><div class="bubble-label">👩‍🏫 先生</div><div class="bubble-content">質問の傾向をカテゴリ別に整理して</div></div>
+          <div class="chat-bubble ai" style="max-width:100%;"><div class="bubble-label">🎙 AI校長</div><div class="bubble-content">
+            わかったよ。今回の質問は大きく3つに分けられるね。<br>
+            ① 校長先生の人柄(趣味・食べ物など)<br>
+            ② 地域の行事や名物<br>
+            ③ 校長先生の生徒時代の思い出<br>
+            全体として「人柄」と「地域」への関心がバランスよく出とるクラスじゃ。
+          </div></div>
+        </div>
+      </div>
+
+      <div class="text-sub text-sm text-center mt-8" style="line-height:1.7;">
+        ※ この画面は「見るだけ」です。先生の操作に合わせて内容が切り替わります。<br>
+        次の活動の合図を待ってくださいね。
+      </div>
+
+      <div class="flex-row mt-8" style="gap:8px;justify-content:center;">
+        <button class="btn btn-secondary btn-sm" onclick="setStudentSummary(1)">(デモ) サマリー①(アイスブレイク)</button>
+        <button class="btn btn-secondary btn-sm" onclick="setStudentSummary(2)">(デモ) サマリー②(本題トーク)</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-5-D ポジショニング - PC向け大画面
+====================================================================== -->
+<section class="screen" id="student-positioning">
+  <div class="student-page">
+    <div class="student-topbar">
+      <div class="student-topbar-side-l"></div>
+      <div class="student-topbar-center">
+        <div class="avatar-lg">山</div>
+        <div>
+          <div class="student-topbar-title">例)山田 太郎 校長</div>
+          <div class="student-topbar-sub">A中学校</div>
+        </div>
+      </div>
+      <div class="student-topbar-side-r">
+        <button class="student-end-btn" onclick="show('student-end')">体験終了</button>
+      </div>
+    </div>
+    <div class="student-theme-bar">💭 <b>テーマ:</b> AI校長は「校長先生」と言えるのか?</div>
+    <div class="student-content">
+      <div class="positioning-stage-lg" id="pos-stage">
+        <div class="positioning-line"></div>
+        <div class="positioning-label left">校長先生と言える</div>
+        <div class="positioning-label right">言えない</div>
+        <div class="marker" style="left:22%;">鈴木</div>
+        <div class="marker" style="left:30%;">伊藤</div>
+        <div class="marker" style="left:38%;">高橋</div>
+        <div class="marker" style="left:45%;">佐藤</div>
+        <div class="marker" style="left:55%;">渡辺</div>
+        <div class="marker" style="left:62%;">山本</div>
+        <div class="marker" style="left:70%;">中村</div>
+        <div class="marker" style="left:78%;">小林</div>
+        <div class="marker mine" id="my-marker" style="left:50%;">田中(あなた)</div>
+      </div>
+      <div class="text-sm text-sub text-center">自分のマーカー(赤)をドラッグして位置を変えられます。いつでも何度でも動かせます。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-5-E 終了画面 - PC向け
+====================================================================== -->
+<section class="screen" id="student-end">
+  <div class="student-page">
+    <div class="student-topbar">
+      <div class="student-topbar-side-l"></div>
+      <div class="student-topbar-center">
+        <div class="avatar-lg">山</div>
+        <div>
+          <div class="student-topbar-title">例)山田 太郎 校長</div>
+          <div class="student-topbar-sub">A中学校</div>
+        </div>
+      </div>
+      <div class="student-topbar-side-r">
+        <span class="badge badge-gray">終了</span>
+      </div>
+    </div>
+    <div class="student-content student-content-narrow">
+      <div class="card text-center" style="padding:48px 40px;">
+        <div style="font-size:72px;margin-bottom:16px;">🎉</div>
+        <h1 style="font-size:26px;">お疲れさまでした!</h1>
+        <p class="text-sub">今日の授業はいかがでしたか?感想があれば教えてください。</p>
+        <div class="field mt-8" style="text-align:left;">
+          <label class="label">感想(任意)</label>
+          <textarea class="textarea" placeholder="AI校長と話してみてどうでしたか?" style="min-height:120px;"></textarea>
+        </div>
+        <button class="btn btn-primary btn-lg btn-block" onclick="alert('送信しました(モック)')">感想を送る</button>
+        <div class="text-sm text-sub mt-4">このページはまもなく閉じられます</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+  7-5-F 事前ワークシート - PC向け2カラム
+====================================================================== -->
+<section class="screen" id="student-worksheet">
+  <div class="student-page">
+    <div class="student-topbar">
+      <div class="student-topbar-side-l"></div>
+      <div class="student-topbar-center">
+        <div class="avatar-lg">山</div>
+        <div>
+          <div class="student-topbar-title">例)山田 太郎 校長</div>
+          <div class="student-topbar-sub">事前ワークシート / A中学校</div>
+        </div>
+      </div>
+      <div class="student-topbar-side-r">
+        <span class="badge badge-warning">授業前に記入</span>
+      </div>
+    </div>
+    <div class="student-content">
+      <div class="card" style="padding:24px;margin-bottom:16px;">
+        <div class="text-sm">
+          📌 授業の日までに、以下のことを考えて記入しておきましょう。
+        </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <div class="field"><label class="label">お名前</label>
+              <input class="input" placeholder="例: 田中 花子" /></div>
+          </div>
+          <div class="card">
+            <h4 style="font-size:15px;">① あなたの考えた質問</h4>
+            <div class="text-sm text-sub">校長先生に聞いてみたい質問を3つ考えてみよう</div>
+            <textarea class="textarea mt-4" placeholder="1.&#10;2.&#10;3." style="min-height:140px;"></textarea>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <h4 style="font-size:15px;">② あなたの考えた意見</h4>
+            <div class="text-sm text-sub">テーマ: 学校や地域、山口の魅力について話してみよう</div>
+            <textarea class="textarea mt-4" placeholder="自分が思う「学校・地域・山口の魅力」を書いてみよう" style="min-height:140px;"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="flex-row mt-4">
+        <div class="spacer"></div>
+        <button class="btn btn-secondary">一時保存</button>
+        <button class="btn btn-primary" onclick="alert('保存しました(モック)')">保存する</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ========== 画面切替 ========== */
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(id);
+  if (target) {
+    target.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+}
+
+/* ========== ログイン画面 ========== */
+let currentRole = 'teacher';
+function selectRole(btn, role) {
+  btn.parentNode.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentRole = role;
+  const isAdmin = role === 'admin';
+  document.getElementById('admin-fields').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('teacher-fields').style.display = isAdmin ? 'none' : 'block';
+  document.getElementById('teacher-pw-hint').style.display = isAdmin ? 'none' : 'block';
+  document.getElementById('admin-forgot').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('teacher-forgot').style.display = isAdmin ? 'none' : 'block';
+}
+function doLogin() {
+  if (currentRole === 'admin') show('admin-schools');
+  else show('teacher-dashboard');
+}
+
+/* ========== インタビューVer切替(本人/代理) ========== */
+let currentVer = 'honnin';
+function selectVer(btn, ver) {
+  if (btn) {
+    btn.parentNode.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  currentVer = ver;
+  document.querySelectorAll('.ver-honnin').forEach(el => {
+    el.style.display = (ver === 'honnin') ? '' : 'none';
+  });
+  document.querySelectorAll('.ver-dairi').forEach(el => {
+    el.style.display = (ver === 'dairi') ? '' : 'none';
+  });
+  document.querySelectorAll('.ver-badge').forEach(el => {
+    el.textContent = (ver === 'honnin') ? '校長本人Ver' : '校長代理Ver';
+  });
+}
+
+/* ========== ラジオカード ========== */
+function toggleRadio(el) {
+  el.parentNode.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+/* ========== セットアップ・ウィザード ========== */
+function wizardStep(n) {
+  document.querySelectorAll('#admin-school-setup .wizard-step').forEach(el => {
+    const step = parseInt(el.dataset.step);
+    el.classList.remove('active', 'done');
+    if (step < n) el.classList.add('done');
+    else if (step === n) el.classList.add('active');
+  });
+  document.querySelectorAll('#admin-school-setup .wizard-pane').forEach(el => el.classList.remove('active'));
+  const pane = document.getElementById('wizard-pane-' + n);
+  if (pane) pane.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+/* ========== 学校詳細:タブ切替 ========== */
+function detailTab(tab, key) {
+  tab.parentNode.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelectorAll('#admin-school-detail .detail-pane').forEach(p => p.classList.remove('active'));
+  const pane = document.getElementById('detail-pane-' + key);
+  if (pane) pane.classList.add('active');
+}
+
+/* ========== v3.2 授業運営:フェーズ進行(5段階) ========== */
+const PHASES_V32 = [
+  { key: 'icebreak', name: 'アイスブレイク', type: 'talk', next: 'サマリー①へ →' },
+  { key: 'summary-1', name: 'サマリー①', type: 'summary', sumTitle: '📊 アイスブレイクのサマリー', next: '本題トークを開始 →',
+    body: '<b>よくあった質問(84件)</b><br>1. 校長先生の人柄に関する質問(趣味・好きな食べ物など)(25件)<br>2. 地域の行事や名物に関する質問(18件)<br>3. 校長先生の生徒時代の思い出に関する質問(12件)<br><br><b>全体の傾向</b><br>「人柄」と「地域」に関する質問がバランスよく集まり、対話への参加は活発だった。' },
+  { key: 'talk', name: '本題トーク', type: 'talk', next: 'サマリー②へ →' },
+  { key: 'summary-2', name: 'サマリー②', type: 'summary', sumTitle: '📊 本題トークのサマリー', next: 'ポジショニング開始 →',
+    body: '<b>テーマ: 学校や地域、山口の魅力について話してみよう</b><br><br><b>挙がった「魅力」のカテゴリ(28名 / 発言計 63件)</b><br>・学校に関すること: 図書室の環境、地域と作る行事、先生との距離 ほか (22件)<br>・地域に関すること: 温泉街、お祭り、山に囲まれた環境 ほか (26件)<br>・山口全体に関すること: 郷土料理、歴史、方言 ほか (15件)<br><br><b>全体の傾向</b><br>生活の中で身近に感じている魅力を語る声が多く、クラス全体で自分たちの地域を見つめる発言がそろった。' },
+  { key: 'positioning', name: 'ポジショニング', type: 'positioning', next: '授業を締めくくる →' },
+];
+let phaseIdx = 0;
+
+function refreshPhaseBar() {
+  document.querySelectorAll('#teacher-classroom .phase-chip').forEach(c => {
+    const i = parseInt(c.dataset.phase);
+    c.classList.remove('done', 'current');
+    if (i < phaseIdx) c.classList.add('done');
+    else if (i === phaseIdx) c.classList.add('current');
+  });
+  const btn = document.getElementById('phase-advance-btn');
+  if (btn) btn.textContent = PHASES_V32[phaseIdx].next || '次へ →';
+  renderCenterViewForPhase();
+}
+
+function renderCenterViewForPhase() {
+  const p = PHASES_V32[phaseIdx];
+  const stream = document.getElementById('classroom-view-stream');
+  const hl = document.getElementById('classroom-view-highlights');
+  const sum = document.getElementById('classroom-view-summary');
+  const pos = document.getElementById('classroom-view-positioning');
+  const title = document.getElementById('center-title');
+  const toggle = document.getElementById('center-view-toggle');
+  if (!stream || !hl || !sum || !pos) return;
+
+  [stream, hl, sum, pos].forEach(el => el.style.display = 'none');
+
+  if (p.type === 'talk') {
+    stream.style.display = 'block';
+    title.textContent = '📡 クラス全体の様子 ・ ' + p.name;
+    toggle.style.display = 'flex';
+    toggleClassroomView('stream');
+  } else if (p.type === 'summary') {
+    sum.style.display = 'block';
+    title.textContent = p.sumTitle;
+    toggle.style.display = 'none';
+    document.getElementById('summary-phase-title').textContent = p.sumTitle;
+    if (p.body) document.getElementById('summary-body').innerHTML = p.body;
+  } else if (p.type === 'positioning') {
+    pos.style.display = 'block';
+    title.textContent = '🗺 ポジショニング';
+    toggle.style.display = 'none';
+  }
+}
+
+function jumpPhase(i) {
+  phaseIdx = Math.max(0, Math.min(PHASES_V32.length - 1, i));
+  refreshPhaseBar();
+}
+function nextPhase() { advancePhase(); }
+function advancePhase() {
+  if (phaseIdx < PHASES_V32.length - 1) {
+    phaseIdx++;
+    refreshPhaseBar();
+  } else {
+    if (confirm('すべてのフェーズが完了しました。授業を終了して振り返り画面に移動しますか?')) {
+      show('teacher-review');
+    }
+  }
+}
+
+/* ========== v3.1 授業運営:中央ビュー切替(talk phase内のみ) ========== */
+function toggleClassroomView(which) {
+  const stream = document.getElementById('classroom-view-stream');
+  const hl = document.getElementById('classroom-view-highlights');
+  const sb = document.getElementById('cv-stream-btn');
+  const hb = document.getElementById('cv-highlights-btn');
+  if (!stream || !hl) return;
+  if (which === 'stream') {
+    stream.style.display = 'block'; hl.style.display = 'none';
+    sb.style.color = 'var(--primary)'; sb.style.fontWeight = '700';
+    hb.style.color = ''; hb.style.fontWeight = '';
+  } else {
+    stream.style.display = 'none'; hl.style.display = 'block';
+    hb.style.color = 'var(--primary)'; hb.style.fontWeight = '700';
+    sb.style.color = ''; sb.style.fontWeight = '';
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('teacher-classroom')) refreshPhaseBar();
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(o => o.classList.remove('open'));
+  });
+  // サイトマップからのディープリンク (#screen-id)
+  const hash = location.hash.replace(/^#/, '');
+  if (hash && document.getElementById(hash)) show(hash);
+  window.addEventListener('hashchange', () => {
+    const h = location.hash.replace(/^#/, '');
+    if (h && document.getElementById(h)) show(h);
+  });
+});
+
+/* ========== v3.1 生徒ドリルダウン ========== */
+function openStudentDetail(name) {
+  document.getElementById('sd-name').textContent = name + ' さん';
+  document.getElementById('sd-avatar').textContent = name.charAt(0);
+  document.getElementById('student-detail-modal').classList.add('open');
+}
+function closeStudentDetail() {
+  document.getElementById('student-detail-modal').classList.remove('open');
+}
+
+/* ========== ユーザー管理:タブ切替 ========== */
+function switchUsersTab(tab) {
+  tab.parentNode.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  const target = tab.dataset.usersTab;
+  document.getElementById('users-pane-admins').style.display = target === 'admins' ? 'block' : 'none';
+  document.getElementById('users-pane-schools').style.display = target === 'schools' ? 'block' : 'none';
+}
+
+/* ========== 生徒ワークシート:選択 ========== */
+function selectWsStudent(el) {
+  el.parentNode.querySelectorAll('.ws-student').forEach(s => {
+    s.classList.remove('active');
+    s.style.background = '';
+  });
+  el.classList.add('active');
+  el.style.background = '#EEF2FF';
+}
+
+/* ========== v3.1 授業運営:生徒グリッド描画 ========== */
+const DUMMY_STUDENTS = [
+  { name: '田中 花子', flag: 'active-speaking' },
+  { name: '鈴木 一郎', flag: 'active-speaking' },
+  { name: '佐藤 健太', flag: 'active-speaking' },
+  { name: '高橋 美咲', flag: 'active-speaking' },
+  { name: '渡辺 翔', flag: 'needs-attention' },
+  { name: '伊藤 彩', flag: 'active-speaking' },
+  { name: '山本 大輔', flag: '' },
+  { name: '中村 愛', flag: 'silent' },
+  { name: '小林 誠', flag: '' },
+  { name: '加藤 七海', flag: 'active-speaking' },
+  { name: '吉田 蓮', flag: '' },
+  { name: '山田 結衣', flag: '' },
+  { name: '松本 翼', flag: '' },
+  { name: '井上 陽菜', flag: 'active-speaking' },
+  { name: '木村 大地', flag: '' },
+  { name: '林 明日香', flag: '' },
+];
+function renderStudentGrid() {
+  const container = document.getElementById('student-grid');
+  if (!container) return;
+  container.innerHTML = DUMMY_STUDENTS.map(s => {
+    const initial = s.name.charAt(0);
+    const short = s.name.split(' ')[1] || s.name;
+    return `<div class="student-tile ${s.flag}" onclick="openStudentDetail('${s.name}')">
+      <div class="tile-avatar">${initial}</div>
+      <div class="tile-name">${short}</div>
+    </div>`;
+  }).join('');
+}
+document.addEventListener('DOMContentLoaded', renderStudentGrid);
+
+/* ========== ポジショニング:マーカーをドラッグ ========== */
+function initPositioningDrag() {
+  const marker = document.getElementById('my-marker');
+  const stage = document.getElementById('pos-stage');
+  if (!marker || !stage) return;
+
+  let dragging = false;
+  const startDrag = e => { dragging = true; e.preventDefault(); };
+  const endDrag = () => { dragging = false; };
+  const move = e => {
+    if (!dragging) return;
+    const rect = stage.getBoundingClientRect();
+    const clientX = (e.touches ? e.touches[0].clientX : e.clientX);
+    let x = ((clientX - rect.left) / rect.width) * 100;
+    x = Math.max(5, Math.min(95, x));
+    marker.style.left = x + '%';
+  };
+
+  marker.addEventListener('mousedown', startDrag);
+  marker.addEventListener('touchstart', startDrag);
+  document.addEventListener('mousemove', move);
+  document.addEventListener('touchmove', move);
+  document.addEventListener('mouseup', endDrag);
+  document.addEventListener('touchend', endDrag);
+}
+document.addEventListener('DOMContentLoaded', initPositioningDrag);
+
+/* ========== v3.6 生徒サマリー視聴:①/②切替 ========== */
+const STUDENT_SUMMARIES = {
+  1: {
+    themeLabel: 'みんなの質問を先生がまとめています',
+    title: '📊 アイスブレイクのサマリー',
+    body: '<b>よくあった質問(84件)</b><br>1. 校長先生の人柄に関する質問(趣味・好きな食べ物など)(25件)<br>2. 地域の行事や名物に関する質問(18件)<br>3. 校長先生の生徒時代の思い出に関する質問(12件)<br><br><b>全体の傾向</b><br>「人柄」と「地域」に関する質問がバランスよく集まり、クラス全体で対話への参加が活発だった。',
+    chat: '<div class="chat-bubble me" style="max-width:100%;"><div class="bubble-label">👩‍🏫 先生</div><div class="bubble-content">質問の傾向をカテゴリ別に整理して</div></div>' +
+          '<div class="chat-bubble ai" style="max-width:100%;"><div class="bubble-label">🎙 AI校長</div><div class="bubble-content">わかったよ。今回の質問は大きく3つに分けられるね。<br>① 校長先生の人柄(趣味・食べ物など)<br>② 地域の行事や名物<br>③ 校長先生の生徒時代の思い出<br>全体として「人柄」と「地域」への関心がバランスよく出とるクラスじゃ。</div></div>' +
+          '<div class="chat-bubble me" style="max-width:100%;"><div class="bubble-label">👩‍🏫 先生</div><div class="bubble-content">件数を先に、もう少し短く</div></div>' +
+          '<div class="chat-bubble ai" style="max-width:100%;"><div class="bubble-label">🎙 AI校長</div><div class="bubble-content">人柄(25件) / 地域(18件) / 生徒時代(12件)。合計84件、参加はとても活発じゃった。</div></div>'
+  },
+  2: {
+    themeLabel: 'みんなが話した「魅力」を先生がまとめています',
+    title: '📊 本題トーク「学校や地域、山口の魅力」のサマリー',
+    body: '<b>テーマ: 学校や地域、山口の魅力について話してみよう</b><br><br><b>挙がった「魅力」のカテゴリ(28名 / 発言計 63件)</b><br>・学校に関すること: 図書室の環境、地域と作る行事、先生との距離 ほか (22件)<br>・地域に関すること: 温泉街、お祭り、山に囲まれた環境 ほか (26件)<br>・山口全体に関すること: 郷土料理、歴史、方言 ほか (15件)<br><br><b>全体の傾向</b><br>生活の中で身近に感じている魅力を語る声が多く、クラス全体で自分たちの地域を見つめる発言がそろった。',
+    chat: '<div class="chat-bubble me" style="max-width:100%;"><div class="bubble-label">👩‍🏫 先生</div><div class="bubble-content">「魅力」をカテゴリごとの件数で短くまとめて</div></div>' +
+          '<div class="chat-bubble ai" style="max-width:100%;"><div class="bubble-label">🎙 AI校長</div><div class="bubble-content">学校に関すること(22件) / 地域に関すること(26件) / 山口全体(15件)。発言数は三つとも近く、「身近な魅力」を語る視点がクラスでそろったね。</div></div>' +
+          '<div class="chat-bubble me" style="max-width:100%;"><div class="bubble-label">👩‍🏫 先生</div><div class="bubble-content">各カテゴリの代表的なキーワードだけ</div></div>' +
+          '<div class="chat-bubble ai" style="max-width:100%;"><div class="bubble-label">🎙 AI校長</div><div class="bubble-content">学校: 図書室 / 行事 / 関係性<br>地域: 温泉 / お祭り / 自然<br>山口: 食 / 歴史 / 言葉</div></div>'
+  }
+};
+function setStudentSummary(n) {
+  const s = STUDENT_SUMMARIES[n];
+  if (!s) return;
+  document.getElementById('student-summary-theme-label').textContent = s.themeLabel;
+  document.getElementById('student-summary-title').textContent = s.title;
+  document.getElementById('student-summary-body').innerHTML = s.body;
+  document.getElementById('student-summary-chat').innerHTML = s.chat;
+}
+</script>
+</body>
+</html>
