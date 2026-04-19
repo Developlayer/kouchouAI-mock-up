@@ -925,4 +925,27 @@ git push -u origin main
 - 生徒画面 `student-chat-*` で AI校長が生徒本人に呼びかける「田中さん」: 本人への呼びかけのため対象外
 
 ---
+
+## 2026-04-19 v3.7 — GitHub Pages 公開
+
+### 公開情報
+- 本番URL: https://developlayer.github.io/kouchouAI-mock-up/
+- サイトマップ: https://developlayer.github.io/kouchouAI-mock-up/sitemap.html
+- リポジトリ: https://github.com/Developlayer/kouchouAI-mock-up (Public)
+- ブランチ: main / Folder: `/ (root)`
+
+### 運用
+- `main` へ push で自動デプロイ(1〜2分で反映)
+- 更新フロー:
+  ```bash
+  cd "/Users/yuya/Desktop/kouchouAI mock-up"
+  git add -u && git commit -m "..." && git push
+  ```
+
+### 初期コミット
+- commit 95c5a1f 「AI校長 モックアップ v3.7 初版」
+- 含まれるファイル: index.html / sitemap.html / CLAUDE.md / Development Log.md / ai_kocho_spec.md / .gitignore
+- `.claude/` と `.DS_Store` は gitignore 済み
+
+---
 <!-- 新しいエントリーはここに追加 -->

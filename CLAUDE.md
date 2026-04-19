@@ -4,6 +4,12 @@
 AI校長アプリのクリッカブルモックアップ（HTML/CSS/JS）を作成するプロジェクト。
 仕様書: `ai_kocho_spec.md`
 
+## 公開URL・リポジトリ
+- 本番(GitHub Pages): https://developlayer.github.io/kouchouAI-mock-up/
+- サイトマップ: https://developlayer.github.io/kouchouAI-mock-up/sitemap.html
+- リポジトリ: https://github.com/Developlayer/kouchouAI-mock-up (Public)
+- デプロイ方法: `main` ブランチへ push すると GitHub Pages が自動反映(1〜2分)
+
 ## 技術方針
 - **単一HTMLファイル** (`index.html`) で全画面を管理
 - JS で画面の表示/非表示を切り替えるSPAスタイル
